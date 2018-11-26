@@ -53,6 +53,7 @@ namespace handler
         private const string TASK_VOTE_ML = "ML";
         private const string TASK_VOTE_DM = "DM";
         private const string TASK_VOTE_JZ = "JZ";
+        private const string TASK_VOTE_HY = "HY";
         private const string TASK_VOTE_OUTDO = "Outdo";
         private const string TASK_VOTE_PROJECT = "投票项目";
 
@@ -341,6 +342,20 @@ namespace handler
                         Thread.Sleep(5000);
                     }
                 }
+                else if (taskName.Equals(TASK_VOTE_HY))
+                {
+                    IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
+                    if (hwnd != IntPtr.Zero)
+                    {
+                        IntPtr hwndEx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "停止");
+                        while (!Net.isOnline())
+                        {
+                            Thread.Sleep(500);
+                        }
+                        createHwndThread(hwndEx);
+                        Thread.Sleep(5000);
+                    }
+                }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
                     IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
@@ -579,6 +594,10 @@ namespace handler
                                 {
                                     taskName = TASK_VOTE_ML;
                                 }
+                                else if (title.ToString().IndexOf("自动投票软件") != -1)
+                                {
+                                    taskName = TASK_VOTE_HY;
+                                }
                             }
                             else if (hwnd1 != IntPtr.Zero)
                             {
@@ -663,6 +682,10 @@ namespace handler
                     else if (taskName.Equals(TASK_VOTE_JZ))
                     {
                         jzStart();
+                    }
+                    else if (taskName.Equals(TASK_VOTE_HY))
+                    {
+                        hyStart();
                     }
                 }
                 taskPath = customPath;
@@ -1005,6 +1028,61 @@ namespace handler
             hwndEx = HwndUtil.FindWindowEx(hwndTGroupBox, IntPtr.Zero, "TButton", "开 始");
             createHwndThread(hwndEx);
             finishStart();
+        }
+
+        //HY启动
+        private void hyStart()
+        {
+            IntPtr hwnd = IntPtr.Zero;
+            projectName = TASK_VOTE_HY;
+            do
+            {
+                if (!nameCheck())
+                {
+                    return;
+                }
+                hwnd = HwndUtil.FindWindow("WTWindow", null);
+                Thread.Sleep(500);
+            }
+            while (hwnd == IntPtr.Zero);
+            //设置拨号延迟
+            IntPtr hwndCf = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "设置");
+
+            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndCf, IntPtr.Zero, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(hwndCf, hwndEx, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(hwndCf, hwndEx, "Edit", null);
+            HwndUtil.setText(hwndEx, (delay / 1000).ToString());
+            //设置工号
+            if (inputId.Equals("1"))
+            {
+                String id = workerId;
+                if (tail.Equals("1"))
+                {
+                    id = workerId + "-" + (no > 9 ? no.ToString() : "0" + no);
+                }
+                IntPtr hwndId = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "会员");
+                hwndEx = HwndUtil.FindWindowEx(hwndId, IntPtr.Zero, "Edit", null);
+                hwndEx = HwndUtil.FindWindowEx(hwndId, hwndEx, "Edit", null);
+                hwndEx = HwndUtil.FindWindowEx(hwndId, hwndEx, "Edit", null);
+                HwndUtil.setText(hwndEx, id);
+            }
+            //开始投票
+            IntPtr hwndStart = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "投票");
+            createHwndThread(hwndStart);
+            finishStart();
+        }
+
+        //HY到票检测
+        private bool hyOverCheck()
+        {
+            IntPtr hwnd = HwndUtil.FindWindow("#32770", "信息：");
+            if (hwnd != IntPtr.Zero)
+            {
+                HwndUtil.closeHwnd(hwnd);
+                IniReadWriter.WriteIniKeys("Command", "OVER", "1", pathShare + @"\CF.ini");
+                return true;
+            }
+            return false;
         }
 
         //JT启动
@@ -1645,6 +1723,14 @@ namespace handler
                 else if (taskName.Equals(TASK_VOTE_JZ))
                 {
                     if (jzOverCheck())
+                    {
+                        killProcess(false);
+                        switchWatiOrder();
+                    }
+                }
+                else if (taskName.Equals(TASK_VOTE_HY))
+                {
+                    if (hyOverCheck())
                     {
                         killProcess(false);
                         switchWatiOrder();
