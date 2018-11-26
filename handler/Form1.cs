@@ -89,6 +89,9 @@ namespace handler
         //启动程序，检查配置文件，启动主线程
         private void Form1_Load(object sender, EventArgs e)
         {
+
+            hyStart();
+            return;
             if (File.Exists(@".\handler.ini"))
             {
                 pathShare = IniReadWriter.ReadIniKeys("Command", "gongxiang", "./handler.ini");
@@ -1049,6 +1052,7 @@ namespace handler
             IntPtr hwndCf = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "设置");
 
             IntPtr hwndEx = HwndUtil.FindWindowEx(hwndCf, IntPtr.Zero, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(hwndCf, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(hwndCf, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(hwndCf, hwndEx, "Edit", null);
             HwndUtil.setText(hwndEx, (delay / 1000).ToString());
