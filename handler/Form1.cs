@@ -90,8 +90,6 @@ namespace handler
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            hyStart();
-            return;
             if (File.Exists(@".\handler.ini"))
             {
                 pathShare = IniReadWriter.ReadIniKeys("Command", "gongxiang", "./handler.ini");
