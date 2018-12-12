@@ -1514,6 +1514,23 @@ namespace handler
             }
             return false;
         }
+
+        //九天禁止虚拟机检测
+        private bool jiutianVmBanCheck()
+        {
+            IntPtr hwnd = HwndUtil.FindWindow("#32770", "信息：");
+            IntPtr hwndEx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Static", "本任务禁止在虚拟机内运行");
+            if (hwndEx != IntPtr.Zero)
+            {
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDroped(false);
+                }
+                HwndUtil.closeHwnd(hwnd);
+                return true;
+            }
+            return false;
+        }
         //九天验证码输入检测
         private bool isIdentifyCode()
         {
@@ -1673,7 +1690,7 @@ namespace handler
                 }
                 if (taskName.Equals(TASK_VOTE_JIUTIAN) && p > 0)
                 {
-                    if (jiutianOverCheck(ref s) || jiutianRestrictCheck())
+                    if (jiutianOverCheck(ref s) || jiutianRestrictCheck() || jiutianVmBanCheck())
                     {
                         switchWatiOrder();
                     }
