@@ -232,10 +232,18 @@ namespace handler
         //获取项目进程
         private Process[] processCheck()
         {
-            Process[] pros = getProcess("AutoUpdate.dll");
-            if (pros.Length > 0)
+            Process[] pros1 = getProcess("AutoUpdate.dll");
+            if (pros1.Length > 0)
             {
-                foreach (Process p in pros)
+                foreach (Process p in pros1)
+                {
+                    p.Kill();
+                }
+            }
+            Process[] pros2 = getProcess("votefe.dll");
+            if (pros2.Length > 0)
+            {
+                foreach (Process p in pros2)
                 {
                     p.Kill();
                 }
