@@ -1209,7 +1209,6 @@ namespace handler
                 hwnd = HwndUtil.FindWindow("WTWindow", null);
                 hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
                 workCondition = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "工作情况");
-                writeLogs(workingPath + "/log.txt", "workCondition:" + workCondition.ToString());
                 preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "加载成功 可开始投票");
                 jiutianCode = "Afx:400000:b:10011:1900015:0";
                 if (preparedCheck == IntPtr.Zero)
@@ -1224,7 +1223,6 @@ namespace handler
                     preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10003:900015:0", "加载成功 可开始投票");
                     jiutianCode = "Afx:400000:b:10003:900015:0";
                 }
-                writeLogs(workingPath + "/log.txt", "preparedCheck:" + preparedCheck.ToString());
                 startButton = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "");
                 startButton = HwndUtil.FindWindowEx(startButton, IntPtr.Zero, "Button", "开始投票");
                 Thread.Sleep(500);
@@ -1281,7 +1279,10 @@ namespace handler
         //升级程序
         private void updateSoft()
         {
-            rasOperate("connect");
+            if (!Net.isRealOnline())
+            {
+                rasOperate("connect");
+            }
             writeLogs("./log.txt", "开始下载:更新");
             string pathName = "./handler-new.exe";
             string url = "http://bitcoinrobot.cn/file/handler.exe";
@@ -1449,10 +1450,21 @@ namespace handler
                     online = Net.isOnline();
                     if (!online)
                     {
-                        netError("error");
+                        string exception = IniReadWriter.ReadIniKeys("Command", "exception", "./handler.ini");
+                        if (exception == "1")
+                        {
+                            netError("error");
+                        }
+                        else
+                        {
+                            IniReadWriter.WriteIniKeys("Command", "exception", "1", "./handler.ini");
+                            Process.Start("shutdown.exe", "-r -t 0");
+                            mainThreadClose();
+                        }
                     }
                 }
             }
+            IniReadWriter.WriteIniKeys("Command", "exception", "0", "./handler.ini");
             string arrDrop = IniReadWriter.ReadIniKeys("Command", "ArrDrop", pathShare + "/CF.ini");
             if (!StringUtil.isEmpty(arrDrop))
             {
