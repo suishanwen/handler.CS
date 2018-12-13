@@ -31,7 +31,8 @@ namespace handler
         private string tail;    //分号标识
         private RASDisplay ras; //ADSL对象
         private string adslName;    //拨号名称
-        private bool isAutoVote; //自动投票标识
+        private bool isAutoVote = false; //自动投票标识
+        private int overTimeCount = 0; //投票超时次数
         private bool ie8 = isIE8();
         private string jiutianCode = "Afx:400000:b:10011:1900015:0";
         private string workingPath = Environment.CurrentDirectory; //当前工作路径
@@ -439,11 +440,16 @@ namespace handler
         {
             if (taskChange.Equals("1"))
             {
+                overTimeCount = 0;
                 workerId = IniReadWriter.ReadIniKeys("Command", "worker", pathShare + "/CF.ini");
                 inputId = IniReadWriter.ReadIniKeys("Command", "printgonghao", pathShare + "/CF.ini");
                 tail = IniReadWriter.ReadIniKeys("Command", "tail", pathShare + "/CF.ini");
                 customPath = IniReadWriter.ReadIniKeys("Command", "customPath" + no, pathShare + "/TaskPlus.ini");
                 writeLogs(workingPath + "/log.txt", "taskChange:"+ customPath);
+            }
+            else
+            {
+                overTimeCount++;
             }
             if (StringUtil.isEmpty(workerId))
             {
@@ -1817,6 +1823,11 @@ namespace handler
                 if (isSysTask())
                 {
                     p = 0;
+                }
+                if (isAutoVote && overTimeCount > 2)
+                {
+                    addVoteProjectNameDroped(false);
+                    switchWatiOrder();
                 }
                 if (taskName.Equals(TASK_VOTE_JIUTIAN) && p > 0)
                 {
