@@ -33,7 +33,7 @@ namespace handler
         private string adslName;    //拨号名称
         private bool isAutoVote; //自动投票标识
         private bool ie8 = isIE8();
-        private string jiutianCode = "";
+        private string jiutianCode = "Afx:400000:b:10011:1900015:0";
         private string workingPath = Environment.CurrentDirectory; //当前工作路径
 
         private const string TASK_SYS_UPDATE = "Update";
@@ -1281,6 +1281,7 @@ namespace handler
         //升级程序
         private void updateSoft()
         {
+            rasOperate("connect");
             writeLogs("./log.txt", "开始下载:更新");
             string pathName = "./handler-new.exe";
             string url = "http://bitcoinrobot.cn/file/handler.exe";
@@ -1305,11 +1306,11 @@ namespace handler
                 string path = "";
                 string line1 = "Taskkill /F /IM handler.exe";
                 string line2 = "ping -n 3 127.0.0.1>nul";
-                string line3 = "del /s /Q " + Environment.CurrentDirectory + "\\handler.exe";
+                string line3 = "del /s /Q " + @""""+ Environment.CurrentDirectory + "\\handler.exe"+@"""";
                 string line4 = "ping -n 3 127.0.0.1>nul";
-                string line5 = "ren " + Environment.CurrentDirectory + "\\handler-new.exe handler.exe";
+                string line5 = @"ren """ + Environment.CurrentDirectory + @"\\handler-new.exe"" ""handler.exe""";
                 string line6 = "ping -n 3 127.0.0.1>nul";
-                string line7 = "start " + Environment.CurrentDirectory + "\\handler.exe";
+                string line7 = "start " + @""""" "+@"""" + Environment.CurrentDirectory + "\\handler.exe"+ @"""";
                 string[] lines = { "@echo off", line1, line2, line3, line4, line5, line6, line7 };
                 File.WriteAllLines(@"./update.bat", lines, Encoding.GetEncoding("GBK"));
             }
@@ -1331,7 +1332,13 @@ namespace handler
         {
             RegistryKey mreg;
             mreg = Registry.LocalMachine;
-            mreg = mreg.CreateSubKey("software\\Microsoft\\Internet Explorer");
+            try
+            {
+                mreg = mreg.CreateSubKey("software\\Microsoft\\Internet Explorer");
+            }catch(Exception e)
+            {
+                return false;
+            }
             return mreg.GetValue("Version").ToString().Substring(0,1)=="8";
         }
 
