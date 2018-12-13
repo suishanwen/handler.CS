@@ -87,6 +87,7 @@
     <Compile Include="util\Adsl.cs" />
     <Compile Include="util\Computer.cs" />
     <Compile Include="util\Hotkey.cs" />
+    <Compile Include="util\HttpManager.cs" />
     <Compile Include="util\HwndUtil.cs" />
     <Compile Include="util\IniReadWriter.cs" />
     <Compile Include="util\MouseKeyboard.cs" />

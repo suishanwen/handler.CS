@@ -1,4 +1,5 @@
-﻿using handler.util;
+﻿using controller.util;
+using handler.util;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
@@ -32,7 +33,7 @@ namespace handler
         private string adslName;    //拨号名称
         private bool isAutoVote; //自动投票标识
         private bool ie8 = isIE8();
-
+        private string jiutianCode = "";
         private string workingPath = Environment.CurrentDirectory; //当前工作路径
 
         private const string TASK_SYS_UPDATE = "Update";
@@ -423,7 +424,10 @@ namespace handler
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             }
             killProcess(getStopIndicator());
-            rasOperate("disconnect");
+            if (adslName != "宽带连接")
+            {
+                rasOperate("disconnest");
+            }
             taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             taskChange = IniReadWriter.ReadIniKeys("Command", "taskChange" + no, pathShare + "/Task.ini");
             notifyIcon1.Text = "taskName:" + taskName + "\ntaskChange:" + taskChange;
@@ -447,7 +451,10 @@ namespace handler
             }
             if (taskName.Equals(TASK_SYS_WAIT_ORDER))//待命
             {
-                ras.Disconnect();
+                if(adslName != "宽带连接")
+                {
+                    rasOperate("disconnest");
+                }
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
                 if (taskName.Equals(TASK_SYS_WAIT_ORDER))
                 {
@@ -471,7 +478,10 @@ namespace handler
                 }
                 if (Net.isOnline())
                 {
-                    rasOperate("disconnest");
+                    if (adslName != "宽带连接")
+                    {
+                        ras.Disconnect();
+                    }
                     IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
                     IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
                     IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
@@ -504,6 +514,8 @@ namespace handler
             }
             else if (taskName.Equals(TASK_SYS_UPDATE))//升级
             {
+                IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
+                IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
                 IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
                 updateSoft();
                 mainThreadClose();
@@ -1151,10 +1163,10 @@ namespace handler
             while (hwnd == IntPtr.Zero);
             //设置拨号延迟
             IntPtr ButtonHwnd = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "设置");
-            IntPtr hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "3");
+            IntPtr hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "2");
             if (hwndEx == IntPtr.Zero)
             {
-                hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "4");
+                hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "3");
             }
             HwndUtil.setText(hwndEx, (delay / 1000).ToString());
             //设置工号
@@ -1184,6 +1196,7 @@ namespace handler
         {
             IntPtr hwnd = IntPtr.Zero;
             IntPtr hwndSysTabControl32 = IntPtr.Zero;
+            IntPtr workCondition = IntPtr.Zero;
             IntPtr preparedCheck = IntPtr.Zero;
             IntPtr startButton = IntPtr.Zero;
             projectName = TASK_VOTE_JIUTIAN;
@@ -1195,8 +1208,23 @@ namespace handler
                 }
                 hwnd = HwndUtil.FindWindow("WTWindow", null);
                 hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
-                preparedCheck = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "工作情况");
-                preparedCheck = HwndUtil.FindWindowEx(preparedCheck, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "加载成功 可开始投票");
+                workCondition = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "工作情况");
+                writeLogs(workingPath + "/log.txt", "workCondition:" + workCondition.ToString());
+                preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "加载成功 可开始投票");
+                jiutianCode = "Afx:400000:b:10011:1900015:0";
+                if (preparedCheck == IntPtr.Zero)
+                {
+                    //WIN7
+                    preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10003:1900015:0", "加载成功 可开始投票");
+                    jiutianCode = "Afx:400000:b:10003:1900015:0";
+                }
+                if (preparedCheck == IntPtr.Zero)
+                {
+                    //WIN10
+                    preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10003:900015:0", "加载成功 可开始投票");
+                    jiutianCode = "Afx:400000:b:10003:900015:0";
+                }
+                writeLogs(workingPath + "/log.txt", "preparedCheck:" + preparedCheck.ToString());
                 startButton = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "");
                 startButton = HwndUtil.FindWindowEx(startButton, IntPtr.Zero, "Button", "开始投票");
                 Thread.Sleep(500);
@@ -1238,28 +1266,56 @@ namespace handler
             //pro.WaitForExit();
         }
 
+        //通过路径启动进程
+        private void StartProcess(string pathName)
+        {
+            ProcessStartInfo info = new ProcessStartInfo();
+            info.FileName = pathName;
+            info.Arguments = "";
+            info.WorkingDirectory = pathName.Substring(0, pathName.LastIndexOf("\\"));
+            info.WindowStyle = ProcessWindowStyle.Normal;
+            Process pro = Process.Start(info);
+            Thread.Sleep(500);
+        }
+
         //升级程序
         private void updateSoft()
         {
-            string path = IniReadWriter.ReadIniKeys("Command", "Path0", pathShare + "/CF.ini");
-            string line1 = "Taskkill /F /IM " + path.Substring(path.LastIndexOf("\\") + 1);
-            string line2 = "ping -n 3 127.0.0.1>nul";
-            string line3 = "copy / y " + path + @" """ + workingPath + @"""";
-            string line4 = "ping -n 3 127.0.0.1>nul";
-            string line5 = "start " + path.Substring(path.LastIndexOf("\\") + 1);
-            string[] lines = { "@echo off", line1, line2, line3, line4, line5};
-            try
+            writeLogs("./log.txt", "开始下载:更新");
+            string pathName = "./handler-new.exe";
+            string url = "http://bitcoinrobot.cn/file/handler.exe";
+            bool isDownloading = true;
+            HttpManager httpManager = HttpManager.getInstance();
+            do
             {
-                File.WriteAllLines(@"./自动升级.bat", lines, Encoding.GetEncoding("GBK"));
-                IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                startProcess(workingPath + @"\自动升级.bat");
-                mainThreadClose();
-            }
-            catch (Exception e)
+                try
+                {
+                    httpManager.HttpDownloadFile(url, pathName);
+                    isDownloading = false;
+                }
+                catch (Exception)
+                {
+                    writeLogs("./log.txt", "更新下载异常，重新下载");
+                    File.Delete(pathName);
+                    Thread.Sleep(1000);
+                }
+            } while (isDownloading);
+            if (!File.Exists("./update.bat"))
             {
-                MessageBox.Show(e.ToString());
+                string path = "";
+                string line1 = "Taskkill /F /IM handler.exe";
+                string line2 = "ping -n 3 127.0.0.1>nul";
+                string line3 = "del /s /Q " + Environment.CurrentDirectory + "\\handler.exe";
+                string line4 = "ping -n 3 127.0.0.1>nul";
+                string line5 = "ren " + Environment.CurrentDirectory + "\\handler-new.exe handler.exe";
+                string line6 = "ping -n 3 127.0.0.1>nul";
+                string line7 = "start " + Environment.CurrentDirectory + "\\handler.exe";
+                string[] lines = { "@echo off", line1, line2, line3, line4, line5, line6, line7 };
+                File.WriteAllLines(@"./update.bat", lines, Encoding.GetEncoding("GBK"));
             }
+
+            StartProcess(Environment.CurrentDirectory + "\\update.bat");
+            Application.Exit();//退出整个应用程序
         }
 
         //显示通知
@@ -1279,12 +1335,35 @@ namespace handler
             return mreg.GetValue("Version").ToString().Substring(0,1)=="8";
         }
 
+        private static string InvokeCmd(string cmdArgs)
+        {
+            string Tstr = "";
+            Process p = new Process();
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+            p.StandardInput.WriteLine(cmdArgs);
+            p.StandardInput.WriteLine("exit");
+            Tstr = p.StandardOutput.ReadToEnd();
+            p.WaitForExit();
+            p.Close();
+            return Tstr;
+        }
+
         //ADSL操作
         private void rasOperate(string type)
         {
 
             if (type.Equals("connect"))
             {
+                if (Net.isOnline())
+                {
+                    return;
+                }
                 if (ie8)
                 {
                     Thread.Sleep(200);
@@ -1311,6 +1390,12 @@ namespace handler
                 }
                 else
                 {
+                    if(adslName == "宽带连接")
+                    {
+                        String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
+                        String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
+                        InvokeCmd(@"rasdial.exe 宽带连接" + " " + user + " " + password);
+                    }
                     ras = new RASDisplay();
                     ras.Connect(adslName);
                 }
@@ -1328,8 +1413,16 @@ namespace handler
             writeLogs(workingPath + "/log.txt", "rasConnect");//清空日志
             ras = new RASDisplay();
             ras.Disconnect();
-            ras.Connect(adslName);
-
+            if (adslName == "宽带连接")
+            {
+                String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
+                String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
+                InvokeCmd(@"rasdial.exe 宽带连接" + " " + user + " " + password);
+            }
+            else
+            {
+                ras.Connect(adslName);
+            }
         }
 
         //网络检测
@@ -1563,18 +1656,28 @@ namespace handler
                 IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
                 if (hwnd != IntPtr.Zero)
                 {
+                
                     IntPtr hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
                     IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
-                    IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "运行时间");
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
+                    IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
+                    if (hwndEx == IntPtr.Zero)
+                    {
+                        //WIN7主机环境
+                        hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
+                    }
+                    if (hwndEx == IntPtr.Zero)
+                    {
+                        //WIN10主机环境
+                        hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
+                    }
+                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx,jiutianCode, null);
+                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
+                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                     StringBuilder unUpload = new StringBuilder(512);
                     HwndUtil.GetWindowText(hwndEx, unUpload, unUpload.Capacity);
                     return int.Parse(unUpload.ToString()) > 0;
                 }
                 return false;
-                
             }else
             {
                 return true;
@@ -1588,12 +1691,12 @@ namespace handler
             IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
             IntPtr hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
             IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
-            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "超时票数");
-            hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
+            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "超时票数");
+            hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
             try
             {
-                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
-                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
+                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
+                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 return int.Parse(succ.ToString());
@@ -1609,8 +1712,8 @@ namespace handler
             IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
             IntPtr hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
             IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
-            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, "Afx:400000:b:10011:1900015:0", "超时票数");
-            hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
+            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "超时票数");
+            hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
             StringBuilder duration = new StringBuilder(512);
             HwndUtil.GetWindowText(hwndEx, duration, duration.Capacity);
             int min;
@@ -1624,8 +1727,8 @@ namespace handler
             }
             if (min >= 2)
             {
-                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
-                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, "Afx:400000:b:10011:1900015:0", null);
+                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
+                hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 int success = int.Parse(succ.ToString());
@@ -1902,7 +2005,10 @@ namespace handler
                     taskName = TASK_SYS_WAIT_ORDER;
                     netCheck();
                     Thread.Sleep(1000);
-                    rasOperate("disconnect");
+                    if (adslName != "宽带连接")
+                    {
+                        rasOperate("disconnect");
+                    }
                     notifyIcon1.ShowBalloonTip(0, now, "未发现项目缓存,待命中...\n请通过控制与监控端启动" + no + "号虚拟机", ToolTipIcon.Info);
                 }
                 try
