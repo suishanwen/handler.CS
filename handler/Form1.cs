@@ -32,6 +32,8 @@ namespace handler
         private RASDisplay ras; //ADSL对象
         private string adslName;    //拨号名称
         private bool isAutoVote = false; //自动投票标识
+        private bool failTooMuch = false;//失败太多标识
+        private int succCount = 0;//成功数
         private int overTimeCount = 0; //投票超时次数
         private bool ie8 = isIE8();
         private string jiutianCode = "Afx:400000:b:10011:1900015:0";
@@ -128,6 +130,7 @@ namespace handler
             button1.Enabled = false;
             button2.Enabled = true;
             writeLogs(workingPath + "/log.txt", "");//清空日志
+            timer1.Enabled = true;
             this.WindowState = FormWindowState.Minimized;
             main = new Thread(_main);
             main.Start();
@@ -140,6 +143,7 @@ namespace handler
         {
             notifyIcon1.Icon = (Icon)Properties.Resources.ResourceManager.GetObject("stop");
             cache();
+            timer1.Enabled = false;
             button2.Enabled = false;
             button1.Enabled = true;
             main.Abort();
@@ -420,6 +424,8 @@ namespace handler
         private void taskChangeProcess(bool stopIndicator)
         {
             writeLogs(workingPath + "/log.txt", "taskChangeProcess");
+            succCount = 0;
+            failTooMuch = false;
             if (StringUtil.isEmpty(taskName))
             {
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
@@ -1405,14 +1411,18 @@ namespace handler
                 }
                 else
                 {
-                    if(adslName == "宽带连接")
+                    if (adslName == "宽带连接")
                     {
                         String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
                         String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
-                        InvokeCmd(@"rasdial.exe 宽带连接" + " " + user + " " + password);
+                        InvokeCmd("rasdial.exe 宽带连接" + " " + user + " " + password);
                     }
-                    ras = new RASDisplay();
-                    ras.Connect(adslName);
+                    else
+                    {
+                        ras = new RASDisplay();
+                        ras.Connect(adslName);
+                    }
+
                 }
             }
             else
@@ -1425,14 +1435,14 @@ namespace handler
         //ras子线程，处理IE8线程阻塞
         private void rasConnect()
         {
-            writeLogs(workingPath + "/log.txt", "rasConnect");//清空日志
+            writeLogs(workingPath + "/log.txt", "rasConnect");
             ras = new RASDisplay();
             ras.Disconnect();
             if (adslName == "宽带连接")
             {
                 String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
                 String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
-                InvokeCmd(@"rasdial.exe 宽带连接" + " " + user + " " + password);
+                InvokeCmd("rasdial.exe 宽带连接" + " " + user + " " + password);
             }
             else
             {
@@ -1770,15 +1780,19 @@ namespace handler
             IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
             IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "超时票数");
             hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
+            writeLogs(workingPath + "/log.txt", "hwndEx："+ hwndEx);
             try
             {
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
+                writeLogs(workingPath + "/log.txt", "hwndEx：" + hwndEx);
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 return int.Parse(succ.ToString());
             }
-            catch (Exception) { }
+            catch (Exception) {
+                writeLogs(workingPath + "/log.txt", "获取九天成功失败！");
+            }
             return 0;
 
         }
@@ -1816,6 +1830,26 @@ namespace handler
                 }
             }
             return false;
+        }
+        //获取MM成功数
+        private int getMMSucc()
+        {
+            IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
+            IntPtr ButtonHwnd = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "统计");
+            IntPtr hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
+            hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
+            writeLogs(workingPath + "/log.txt", "hwndEx---> success:" + hwndEx);//清空日志
+            try
+            {
+                StringBuilder succ = new StringBuilder(512);
+                HwndUtil.GetWindowText(hwndEx, succ, 512);
+                return int.Parse(succ.ToString());
+            }
+            catch (Exception) { }
+            return 0;
         }
 
         //清理托盘
@@ -1876,8 +1910,9 @@ namespace handler
                 {
                     p = 0;
                 }
-                if (isAutoVote && overTimeCount > 2)
+                if (isAutoVote && (overTimeCount > 2|| failTooMuch))
                 {
+                    writeLogs(workingPath + "/log.txt", "超时超过2次或一分钟成功低于2,拉黑！");
                     addVoteProjectNameDroped(false);
                     switchWatiOrder();
                 }
@@ -1887,10 +1922,7 @@ namespace handler
                     {
                         switchWatiOrder();
                     }
-                    if (isAutoVote && ((circle == 0 && p == 20) || (circle > 0 && p == 15) || (circle > 0 && circle % 3 == 0 && jiutianFailTooMuch()))){
-                        addVoteProjectNameDroped(false);
-                        switchWatiOrder();
-                    }
+                  
                 }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
@@ -1992,10 +2024,6 @@ namespace handler
             {
                 taskChangeProcess(false);
                 return;
-            }
-            if (adslName == "宽带连接")
-            {
-                rasOperate("connect");
             }
             taskMonitor();
         }
@@ -2100,6 +2128,29 @@ namespace handler
                     MessageBox.Show(e.ToString());
                 }
             }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (isAutoVote && isVoteTask())
+            {
+                int succ = 0;
+                if (taskName.Equals(TASK_VOTE_JIUTIAN))
+                {
+                    succ = getJiutianSucc();
+                }
+                else if (taskName.Equals(TASK_VOTE_MM))
+                {
+                    succ = getMMSucc();
+                }
+                if (succ - succCount < 2)
+                {
+                    failTooMuch = true;
+                }
+                succCount = succ;
+                writeLogs(workingPath + "/log.txt", "success:" + succCount);
+            }
+
         }
     }
 }
