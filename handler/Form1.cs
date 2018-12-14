@@ -1520,6 +1520,10 @@ namespace handler
             IntPtr hwnd = HwndUtil.FindWindow("TMessageForm", "register");
             if (hwnd != IntPtr.Zero)
             {
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDropedTemp(false);
+                }
                 HwndUtil.closeHwnd(hwnd);
                 IniReadWriter.WriteIniKeys("Command", "OVER", "1", pathShare + @"\CF.ini");
                 return true;
@@ -1559,6 +1563,10 @@ namespace handler
             IntPtr hwnd = HwndUtil.FindWindow(null, "投票软件提示");
             if (hwnd != IntPtr.Zero)
             {
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDropedTemp(false);
+                }
                 HwndUtil.closeHwnd(hwnd);
                 IniReadWriter.WriteIniKeys("Command", "OVER", "1", pathShare + @"\CF.ini");
                 return true;
@@ -1580,10 +1588,53 @@ namespace handler
             }
             if (s > 5)
             {
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDropedTemp(false);
+                }
                 IniReadWriter.WriteIniKeys("Command", "OVER", "1", pathShare + @"\CF.ini");
                 return true;
             }
             return false;
+        }
+
+        //添加黑名单项目 临
+        private void addVoteProjectNameDropedTemp(bool isAllProject)
+        {
+            string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+            if (isAllProject)
+            {
+                projectName = projectName.Substring(0, projectName.IndexOf("_"));
+            }
+            string voteProjectNameDroped = IniReadWriter.ReadIniKeys("Command", "addVoteProjectNameDropedTemp", pathShare + "/AutoVote.ini");
+            int dropVote = 0;
+            try
+            {
+                dropVote = int.Parse(IniReadWriter.ReadIniKeys("Command", "dropVote", pathShare + "/AutoVote.ini"));
+            }
+            catch (Exception) { }
+            finally
+            {
+                dropVote++;
+            }
+            IniReadWriter.WriteIniKeys("Command", "dropVote", dropVote.ToString(), pathShare + "/AutoVote.ini");
+            if (StringUtil.isEmpty(voteProjectNameDroped) || voteProjectNameDroped.IndexOf(projectName) == -1)
+            {
+                int validDrop;
+                try
+                {
+                    validDrop = int.Parse(IniReadWriter.ReadIniKeys("Command", "validDrop", pathShare + "/AutoVote.ini"));
+                }
+                catch (Exception)
+                {
+                    validDrop = 1;
+                }
+                if (dropVote >= validDrop)
+                {
+                    voteProjectNameDroped += StringUtil.isEmpty(voteProjectNameDroped) ? projectName : "|" + projectName;
+                    IniReadWriter.WriteIniKeys("Command", "addVoteProjectNameDropedTemp", voteProjectNameDroped, pathShare + "/AutoVote.ini");
+                }
+            }
         }
 
         //添加黑名单项目
@@ -1831,35 +1882,19 @@ namespace handler
                 }
                 if (taskName.Equals(TASK_VOTE_JIUTIAN) && p > 0)
                 {
-                    if (jiutianOverCheck(ref s) || jiutianRestrictCheck() || jiutianVmBanCheck())
+                    if (jiutianOverCheck(ref s) || jiutianRestrictCheck() || jiutianVmBanCheck()|| isIdentifyCode())
                     {
-                        if (isAutoVote)
-                        {
-                            addVoteProjectNameDroped(false);
-                        }
                         switchWatiOrder();
                     }
-                    if (isAutoVote)
-                    {
-                        if (isIdentifyCode())
-                        {
-                            switchWatiOrder();
-                        }
-                        else if ((circle == 0 && p == 20) || (circle > 0 && p == 15) || (circle > 0 && circle % 3 == 0 && jiutianFailTooMuch()))
-                        {
-                            addVoteProjectNameDroped(false);
-                            switchWatiOrder();
-                        }
+                    if (isAutoVote && ((circle == 0 && p == 20) || (circle > 0 && p == 15) || (circle > 0 && circle % 3 == 0 && jiutianFailTooMuch()))){
+                        addVoteProjectNameDroped(false);
+                        switchWatiOrder();
                     }
                 }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
                     if (mmOverCheck())
                     {
-                        if (isAutoVote)
-                        {
-                            addVoteProjectNameDroped(false);
-                        }
                         killProcess(false);
                         switchWatiOrder();
                     }
@@ -1868,10 +1903,6 @@ namespace handler
                 {
                     if (yuanqiuOverCheck())
                     {
-                        if (isAutoVote)
-                        {
-                            addVoteProjectNameDroped(false);
-                        }
                         killProcess(false);
                         switchWatiOrder();
                     }
