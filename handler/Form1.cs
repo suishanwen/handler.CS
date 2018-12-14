@@ -720,6 +720,7 @@ namespace handler
             {
                 taskName = TASK_SYS_WAIT_ORDER;
             }
+
             taskMonitor();
         }
 
@@ -1992,8 +1993,10 @@ namespace handler
                 taskChangeProcess(false);
                 return;
             }
-
-
+            if (adslName == "宽带连接")
+            {
+                rasOperate("connect");
+            }
             taskMonitor();
         }
 
