@@ -1833,6 +1833,10 @@ namespace handler
                 {
                     if (jiutianOverCheck(ref s) || jiutianRestrictCheck() || jiutianVmBanCheck())
                     {
+                        if (isAutoVote)
+                        {
+                            addVoteProjectNameDroped(false);
+                        }
                         switchWatiOrder();
                     }
                     if (isAutoVote)
@@ -1852,6 +1856,10 @@ namespace handler
                 {
                     if (mmOverCheck())
                     {
+                        if (isAutoVote)
+                        {
+                            addVoteProjectNameDroped(false);
+                        }
                         killProcess(false);
                         switchWatiOrder();
                     }
@@ -1860,6 +1868,10 @@ namespace handler
                 {
                     if (yuanqiuOverCheck())
                     {
+                        if (isAutoVote)
+                        {
+                            addVoteProjectNameDroped(false);
+                        }
                         killProcess(false);
                         switchWatiOrder();
                     }
