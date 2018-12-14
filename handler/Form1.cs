@@ -1910,9 +1910,7 @@ namespace handler
             writeLogs(workingPath + "/log.txt", "hwndEx---> success:" + hwndEx);
             try
             {
-                StringBuilder succ = new StringBuilder(512);
-                HwndUtil.GetWindowText(hwndEx, succ, 512);
-                return int.Parse(succ.ToString());
+                return HwndUtil.getEdit(hwndEx);
             }
             catch (Exception) {
                 writeLogs(workingPath + "/log.txt", "获取mm成功失败！");

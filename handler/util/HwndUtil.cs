@@ -6,6 +6,7 @@ namespace handler.util
 {
     class HwndUtil
     {
+        public static int WM_GETTEXT = 0x000D;
         const int WM_CLOSE = 0x0010;
         public const int SW_SHOWNORMAL = 1;
         public const int SW_SHOWMINIMIZED = 2;
@@ -37,6 +38,10 @@ namespace handler.util
         [DllImport("user32.dll")]
         public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("user32.dll", EntryPoint = "SendMessageA")]
+        private static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, StringBuilder lParam);
+      
+
         public static void clickHwnd(IntPtr hWnd)
         {
             SendMessage(hWnd, 0xF5, IntPtr.Zero, null);
@@ -50,6 +55,13 @@ namespace handler.util
         public static void closeHwnd(IntPtr hwnd)
         {
             SendMessage(hwnd, WM_CLOSE, IntPtr.Zero, "");
+        }
+
+        public static int getEdit(IntPtr hwnd)
+        {
+            const int buffer_size = 1024;
+            StringBuilder buffer = new StringBuilder(buffer_size);
+            return SendMessage(hwnd, WM_GETTEXT, buffer_size, buffer);
         }
     }
 }
