@@ -33,6 +33,7 @@ namespace handler
         private string adslName;    //拨号名称
         private bool isAutoVote = false; //自动投票标识
         private bool failTooMuch = false;//失败太多标识
+        private int timerChecked = 0;//timer检测标识
         private int succCount = 0;//成功数
         private int overTimeCount = 0; //投票超时次数
         private bool ie8 = isIE8();
@@ -426,6 +427,7 @@ namespace handler
             writeLogs(workingPath + "/log.txt", "taskChangeProcess");
             succCount = 0;
             failTooMuch = false;
+            timerChecked = 0;
             if (StringUtil.isEmpty(taskName))
             {
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
@@ -1910,9 +1912,9 @@ namespace handler
                 {
                     p = 0;
                 }
-                if (isAutoVote && (overTimeCount > 2|| failTooMuch))
+                if (isAutoVote && (overTimeCount >= 2|| failTooMuch))
                 {
-                    writeLogs(workingPath + "/log.txt", "超时超过2次或一分钟成功低于2,拉黑！");
+                    writeLogs(workingPath + "/log.txt", "超时2次或一分钟成功低于2,拉黑！");
                     addVoteProjectNameDroped(false);
                     switchWatiOrder();
                 }
@@ -2137,13 +2139,15 @@ namespace handler
                 int succ = 0;
                 if (taskName.Equals(TASK_VOTE_JIUTIAN))
                 {
+                    timerChecked++;
                     succ = getJiutianSucc();
                 }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
+                    timerChecked++;
                     succ = getMMSucc();
                 }
-                if (succ - succCount < 2)
+                if (succ - succCount < 2 && timerChecked >= 2)
                 {
                     failTooMuch = true;
                 }
