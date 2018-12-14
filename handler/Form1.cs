@@ -247,14 +247,6 @@ namespace handler
                     p.Kill();
                 }
             }
-            Process[] pros2 = getProcess("votefe.dll");
-            if (pros2.Length > 0)
-            {
-                foreach (Process p in pros2)
-                {
-                    p.Kill();
-                }
-            }
             string process1 = "vote.exe";
             string process2 = "register.exe";
             Process[] process = getProcess(process1);
@@ -1215,6 +1207,7 @@ namespace handler
             IntPtr preparedCheck = IntPtr.Zero;
             IntPtr startButton = IntPtr.Zero;
             projectName = TASK_VOTE_JIUTIAN;
+            int count = 0;
             do
             {
                 if (!nameCheck())
@@ -1241,6 +1234,11 @@ namespace handler
                 startButton = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "");
                 startButton = HwndUtil.FindWindowEx(startButton, IntPtr.Zero, "Button", "开始投票");
                 Thread.Sleep(500);
+                if (hwnd != IntPtr.Zero&& count == 60)
+                {
+                    Process.Start("shutdown.exe", "-r -t 0");
+                    mainThreadClose();
+                }
             }
             while (preparedCheck == IntPtr.Zero || startButton == IntPtr.Zero);
             //设置拨号延迟
