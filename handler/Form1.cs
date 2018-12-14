@@ -432,6 +432,14 @@ namespace handler
         private void taskChangeProcess(bool stopIndicator)
         {
             writeLogs(workingPath + "/log.txt", "taskChangeProcess");
+            if (!File.Exists(@".\explorer-restart.bat"))
+            {
+                String[] Lines = { @"taskkill /f /im explorer.exe & start explorer.exe" };
+                File.WriteAllLines(@".\explorer-restart.bat", Lines, Encoding.GetEncoding("GBK"));
+            }
+            //重启资源管理器
+            startProcess(workingPath+@"\explorer-restart.bat");
+            //InvokeCmd("taskkill /f /im explorer.exe & start explorer.exe");
             succCount = 0;
             failTooMuch = false;
             timerChecked = 0;
@@ -1278,18 +1286,36 @@ namespace handler
             finishStart();
         }
 
+        private void ThreadProcess(object obj)
+        {
+            string pathName = obj.ToString();
+            try
+            {
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.FileName = pathName;
+                info.Arguments = "";
+                info.WorkingDirectory = pathName.Substring(0, pathName.LastIndexOf("\\"));
+                info.WindowStyle = ProcessWindowStyle.Normal;
+                Process pro = Process.Start(info);
+                pro.WaitForExit();
+                pro.Close();
+                writeLogs(workingPath + "/log.txt", "startProcess:" + pathName);
+                Thread.Sleep(500);
+            }
+            catch (Exception e)
+            {
+                writeLogs(workingPath + "/log.txt", "拒绝访问:" + pathName);
+                switchWatiOrder();
+                Process.Start("shutdown.exe", "-r -t 0");
+            }
+
+        }
+
         //通过路径启动进程
         private void startProcess(string pathName)
         {
-            ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = pathName;
-            info.Arguments = "";
-            info.WorkingDirectory = pathName.Substring(0, pathName.LastIndexOf("\\"));
-            info.WindowStyle = ProcessWindowStyle.Normal;
-            Process pro = Process.Start(info);
-            writeLogs(workingPath + "/log.txt", "startProcess:" + pathName);//清空日志
-            Thread.Sleep(500);
-            //pro.WaitForExit();
+            Thread t = new Thread(new ParameterizedThreadStart(ThreadProcess));
+            t.Start(pathName);
         }
 
         //通过路径启动进程
@@ -1632,7 +1658,7 @@ namespace handler
             {
                 projectName = projectName.Substring(0, projectName.IndexOf("_"));
             }
-            string voteProjectNameDroped = IniReadWriter.ReadIniKeys("Command", "addVoteProjectNameDropedTemp", pathShare + "/AutoVote.ini");
+            string voteProjectNameDroped = IniReadWriter.ReadIniKeys("Command", "voteProjectNameDropedTemp", pathShare + "/AutoVote.ini");
             int dropVote = 0;
             try
             {
@@ -1658,7 +1684,7 @@ namespace handler
                 if (dropVote >= validDrop)
                 {
                     voteProjectNameDroped += StringUtil.isEmpty(voteProjectNameDroped) ? projectName : "|" + projectName;
-                    IniReadWriter.WriteIniKeys("Command", "addVoteProjectNameDropedTemp", voteProjectNameDroped, pathShare + "/AutoVote.ini");
+                    IniReadWriter.WriteIniKeys("Command", "voteProjectNameDropedTemp", voteProjectNameDroped, pathShare + "/AutoVote.ini");
                 }
             }
         }
@@ -1812,6 +1838,29 @@ namespace handler
 
         }
 
+
+        //获取圆球成功数
+        private int getYuanqiuSucc()
+        {
+            IntPtr hwnd = HwndUtil.FindWindow("TForm1", null);
+            IntPtr hwndTGroupBox = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "TGroupBox", "状态");
+            IntPtr hwndEx = HwndUtil.FindWindowEx(hwndTGroupBox, IntPtr.Zero, "TEdit", null);
+            try
+            {
+                writeLogs(workingPath + "/log.txt", "hwndEx：" + hwndEx);
+                StringBuilder succ = new StringBuilder(512);
+                HwndUtil.GetWindowText(hwndEx, succ, 512);
+                return int.Parse(succ.ToString());
+            }
+            catch (Exception)
+            {
+                writeLogs(workingPath + "/log.txt", "获取圆球成功失败！");
+            }
+            return 0;
+
+        }
+
+
         //九天成功检测
         private bool jiutianFailTooMuch()
         {
@@ -1846,6 +1895,8 @@ namespace handler
             }
             return false;
         }
+
+
         //获取MM成功数
         private int getMMSucc()
         {
@@ -1856,14 +1907,16 @@ namespace handler
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
-            writeLogs(workingPath + "/log.txt", "hwndEx---> success:" + hwndEx);//清空日志
+            writeLogs(workingPath + "/log.txt", "hwndEx---> success:" + hwndEx);
             try
             {
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 return int.Parse(succ.ToString());
             }
-            catch (Exception) { }
+            catch (Exception) {
+                writeLogs(workingPath + "/log.txt", "获取mm成功失败！");
+            }
             return 0;
         }
 
@@ -1891,15 +1944,6 @@ namespace handler
         {
             refreshIcon();
             overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
-            if (taskName.Equals(TASK_HANGUP_MM2) || taskName.Equals(TASK_HANGUP_YUKUAI))
-            {
-                overTime -= 2;
-            }
-            if (overTime % 2 == 1)
-            {
-                overTime += 1;
-            }
-            overTime = overTime / 2 - 1;
             int p = 0;
             int s = 0;
             bool isOnline = false;
@@ -1913,6 +1957,11 @@ namespace handler
                     {
                         HwndUtil.closeHwnd(adslErr);
                     }
+                }
+                IntPtr adslExcp = HwndUtil.FindWindow("#32770", "网络连接");
+                if (adslExcp != IntPtr.Zero)
+                {
+                    HwndUtil.closeHwnd(adslExcp);
                 }
                 isOnline = Net.isOnline();
                 taskChange = IniReadWriter.ReadIniKeys("Command", "taskChange" + no, pathShare + "/Task.ini");
@@ -1990,30 +2039,6 @@ namespace handler
                 else if (taskName.Equals(TASK_VOTE_OUTDO))
                 {
                     //OUTDO到票检测
-                }else if (isHangUpTask())
-                {
-                    if (circle == 0)
-                    {
-
-                    }
-                    else
-                    {
-                        if (p >= 12)
-                        {
-                            if (taskName.Equals(TASK_HANGUP_DANDAN))
-                            {
-                                taskChangeProcess(false);
-                            }else
-                            {
-                                rasOperate("disconnect");
-                            }
-                        }
-                        else if (p < -60)
-                        {
-                            Process.Start("shutdown.exe", "-r -t 0");
-                            mainThreadClose();
-                        }
-                    }
                 }
                 if (isOnline)
                 {
@@ -2026,9 +2051,9 @@ namespace handler
 
                 }
                 label2.Text = p.ToString();
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
             }
-            while (p == 0 || (p > 0 && p < overTime) || (p < 0 && p > -overTime) || isHangUpTask());
+            while (p == 0 || (p > 0 && p < overTime) || (p < 0 && p > -overTime));
             if (taskName.Equals(TASK_VOTE_MM))
             {
                 rasOperate("disconnect");
@@ -2160,6 +2185,11 @@ namespace handler
                     timerChecked++;
                     succ = getMMSucc();
                 }
+                else if (taskName.Equals(TASK_VOTE_YUANQIU))
+                {
+                    timerChecked++;
+                    succ = getYuanqiuSucc();
+                }
                 if (succ - succCount < 2 && timerChecked >= 2)
                 {
                     failTooMuch = true;
@@ -2167,7 +2197,6 @@ namespace handler
                 succCount = succ;
                 writeLogs(workingPath + "/log.txt", "success:" + succCount);
             }
-
         }
     }
 }
