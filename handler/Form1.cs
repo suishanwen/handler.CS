@@ -131,7 +131,7 @@ namespace handler
             button1.Enabled = false;
             button2.Enabled = true;
             writeLogs(workingPath + "/log.txt", "");//清空日志
-            timer1.Enabled = true;
+            this.timer1.Enabled = true;
             this.WindowState = FormWindowState.Minimized;
             main = new Thread(_main);
             main.Start();
@@ -200,7 +200,8 @@ namespace handler
         //判断当前是否为投票项目
         private bool isVoteTask()
         {
-            isAutoVote = !StringUtil.isEmpty(IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini"));
+            String auto = IniReadWriter.ReadIniKeys("Command", "isAutoVote", pathShare + "/CF.ini");
+            isAutoVote = auto == "1";
             return taskName.Equals(TASK_VOTE_JIUTIAN) || taskName.Equals(TASK_VOTE_YUANQIU) || taskName.Equals(TASK_VOTE_MM) || taskName.Equals(TASK_VOTE_ML) || taskName.Equals(TASK_VOTE_JZ) || taskName.Equals(TASK_VOTE_JT) || taskName.Equals(TASK_VOTE_DM) || taskName.Equals(TASK_VOTE_OUTDO) || taskName.Equals(TASK_VOTE_PROJECT);
         }
 
@@ -438,8 +439,7 @@ namespace handler
                 File.WriteAllLines(@".\explorer-restart.bat", Lines, Encoding.GetEncoding("GBK"));
             }
             //重启资源管理器
-            startProcess(workingPath+@"\explorer-restart.bat");
-            //InvokeCmd("taskkill /f /im explorer.exe & start explorer.exe");
+            //startProcess(workingPath+@"\explorer-restart.bat");
             succCount = 0;
             failTooMuch = false;
             timerChecked = 0;
@@ -1907,10 +1907,9 @@ namespace handler
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
             hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, hwndEx, "Edit", null);
-            writeLogs(workingPath + "/log.txt", "hwndEx---> success:" + hwndEx);
             try
             {
-                return HwndUtil.getEdit(hwndEx);
+                return int.Parse(HwndUtil.GetControlText(hwndEx));
             }
             catch (Exception) {
                 writeLogs(workingPath + "/log.txt", "获取mm成功失败！");
@@ -2170,7 +2169,7 @@ namespace handler
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (isAutoVote && isVoteTask())
+            if (isVoteTask())
             {
                 int succ = 0;
                 if (taskName.Equals(TASK_VOTE_JIUTIAN))

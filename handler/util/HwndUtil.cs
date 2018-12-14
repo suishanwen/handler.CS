@@ -6,7 +6,8 @@ namespace handler.util
 {
     class HwndUtil
     {
-        public static int WM_GETTEXT = 0x000D;
+        const int WM_GETTEXT = 0x000D;
+        const int WM_GETTEXTLENGTH = 0x000E;
         const int WM_CLOSE = 0x0010;
         public const int SW_SHOWNORMAL = 1;
         public const int SW_SHOWMINIMIZED = 2;
@@ -40,7 +41,10 @@ namespace handler.util
 
         [DllImport("user32.dll", EntryPoint = "SendMessageA")]
         private static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, StringBuilder lParam);
-      
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SendMessage(int hWnd, int Msg, int wparam, int lparam);
+
 
         public static void clickHwnd(IntPtr hWnd)
         {
@@ -57,11 +61,27 @@ namespace handler.util
             SendMessage(hwnd, WM_CLOSE, IntPtr.Zero, "");
         }
 
-        public static int getEdit(IntPtr hwnd)
+        public static string GetControlText(IntPtr hWnd)
+        {
+
+            // Get the size of the string required to hold the window title (including trailing null.) 
+            Int32 titleSize = SendMessage((int)hWnd, WM_GETTEXTLENGTH, 0, 0).ToInt32();
+            // If titleSize is 0, there is no title so return an empty string (or null)
+            if (titleSize == 0)
+                return String.Empty;
+
+            StringBuilder title = new StringBuilder(titleSize + 1);
+
+            SendMessage(hWnd, (int)WM_GETTEXT, title.Capacity, title);
+            return title.ToString();
+        }
+
+        public static string getEdit(IntPtr hwnd)
         {
             const int buffer_size = 1024;
             StringBuilder buffer = new StringBuilder(buffer_size);
-            return SendMessage(hwnd, WM_GETTEXT, buffer_size, buffer);
+             SendMessage(hwnd, WM_GETTEXT, buffer_size, buffer);
+            return buffer.ToString();
         }
     }
 }
