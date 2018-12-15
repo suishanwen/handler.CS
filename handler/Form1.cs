@@ -1698,10 +1698,10 @@ namespace handler
                 {
                     rasOperate("connect");
                 }
-                if (isOnline)
+                if (isOnline && !isAdsl)
                 {
                     long kbs = Net.GetNetStatic(adslName);
-                    if(!isAdsl && isAutoVote && kbs > 2048)
+                    if( isAutoVote && kbs > 2048)
                     {
                         writeLogs(workingPath + "/log.txt",taskName+ "流量大于2M,拉黑！");
                         addVoteProjectNameDroped(false);
