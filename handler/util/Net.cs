@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
@@ -55,20 +56,29 @@ namespace handler.util
 
         public static long GetNetStatic(String adslName)
         {
-            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-            if (nics == null || nics.Length < 1)
+            try
             {
-                Console.WriteLine("  No network interfaces found.");
-            }
-            foreach (NetworkInterface adapter in nics)
-            {
-                if(adapter.Name == adslName)
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                if (nics == null || nics.Length < 1)
                 {
-                    IPv4InterfaceStatistics ipv4Statistics = adapter.GetIPv4Statistics();
-                    long send = ipv4Statistics.BytesSent / 1024;
-                    long recv = ipv4Statistics.BytesReceived / 1024;
-                    return send + recv;
+                    Console.WriteLine("  No network interfaces found.");
                 }
+                foreach (NetworkInterface adapter in nics)
+                {
+                    if (adapter.Name == adslName)
+                    {
+                        IPv4InterfaceStatistics ipv4Statistics = adapter.GetIPv4Statistics();
+                        long send = ipv4Statistics.BytesSent / 1024;
+                        long recv = ipv4Statistics.BytesReceived / 1024;
+                        return send + recv;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                StreamWriter sw = File.AppendText(Environment.CurrentDirectory + "/log.txt");
+                sw.WriteLine(e.ToString());
+                sw.Close();
             }
             return 0;
         }
