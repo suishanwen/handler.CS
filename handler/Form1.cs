@@ -31,6 +31,7 @@ namespace handler
         private string tail;    //分号标识
         private RASDisplay ras; //ADSL对象
         private string adslName;    //拨号名称
+        private bool isAdsl;    //是否宽带
         private bool isAutoVote = false; //自动投票标识
         private bool failTooMuch = false;//失败太多标识
         private int timerChecked = 0;//timer检测标识
@@ -94,6 +95,7 @@ namespace handler
                 pathShare = IniReadWriter.ReadIniKeys("Command", "gongxiang", "./handler.ini");
                 no = int.Parse(IniReadWriter.ReadIniKeys("Command", "bianhao", "./handler.ini"));
                 adslName = IniReadWriter.ReadIniKeys("Command", "adslName", "./handler.ini");
+                isAdsl = adslName == "宽带连接";
                 try
                 {
                     delay = int.Parse(IniReadWriter.ReadIniKeys("Command", "yanchi", "./handler.ini"));
@@ -440,10 +442,7 @@ namespace handler
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             }
             killProcess(getStopIndicator());
-            if (adslName != "宽带连接")
-            {
-                rasOperate("disconnest");
-            }
+            rasOperate("disconnest");
             taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             taskChange = IniReadWriter.ReadIniKeys("Command", "taskChange" + no, pathShare + "/Task.ini");
             notifyIcon1.Text = "taskName:" + taskName + "\ntaskChange:" + taskChange;
@@ -472,7 +471,7 @@ namespace handler
             }
             if (taskName.Equals(TASK_SYS_WAIT_ORDER))//待命
             {
-                if(adslName != "宽带连接")
+                if(!isAdsl)
                 {
                     rasOperate("disconnest");
                 }
@@ -499,7 +498,7 @@ namespace handler
                 }
                 if (Net.isOnline())
                 {
-                    if (adslName != "宽带连接")
+                    if (!isAdsl)
                     {
                         ras.Disconnect();
                     }
@@ -1214,7 +1213,7 @@ namespace handler
             writeLogs(workingPath + "/log.txt", "rasConnect");
             ras = new RASDisplay();
             ras.Disconnect();
-            if (adslName == "宽带连接")
+            if (isAdsl)
             {
                 String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
                 String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
@@ -1668,7 +1667,7 @@ namespace handler
             refreshIcon();
             overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
             int delay = 1000;
-            if (adslName == "宽带连接")
+            if (isAdsl)
             {
                 overTime *= 2;
                 delay /= 2;
@@ -1696,7 +1695,7 @@ namespace handler
                 if (isOnline)
                 {
                     long kbs = Net.GetNetStatic(adslName);
-                    if(adslName != "宽带连接" && isAutoVote && kbs > 2048)
+                    if(!isAdsl && isAutoVote && kbs > 2048)
                     {
                         writeLogs(workingPath + "/log.txt",taskName+ "流量大于2M,拉黑！");
                         addVoteProjectNameDroped(false);
@@ -1712,7 +1711,7 @@ namespace handler
                 if (isSysTask())
                 {
                     p = 0;
-                    if (!isOnline)
+                    if (isAdsl && !isOnline)
                     {
                         rasOperate("connect");
                     }
@@ -1872,7 +1871,7 @@ namespace handler
                     taskName = TASK_SYS_WAIT_ORDER;
                     netCheck();
                     Thread.Sleep(1000);
-                    if (adslName != "宽带连接")
+                    if (!isAdsl)
                     {
                         rasOperate("disconnect");
                     }
