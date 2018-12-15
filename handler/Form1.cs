@@ -442,7 +442,10 @@ namespace handler
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             }
             killProcess(getStopIndicator());
-            rasOperate("disconnest");
+            if (!isAdsl)
+            {
+                rasOperate("disconnest");
+            }
             taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
             taskChange = IniReadWriter.ReadIniKeys("Command", "taskChange" + no, pathShare + "/Task.ini");
             notifyIcon1.Text = "taskName:" + taskName + "\ntaskChange:" + taskChange;
@@ -1186,7 +1189,7 @@ namespace handler
                 }
                 else
                 {
-                    if (adslName == "宽带连接")
+                    if (isAdsl)
                     {
                         String user = IniReadWriter.ReadIniKeys("Command", "user", "./handler.ini");
                         String password = IniReadWriter.ReadIniKeys("Command", "password", "./handler.ini");
@@ -1210,7 +1213,6 @@ namespace handler
         //ras子线程，处理IE8线程阻塞
         private void rasConnect()
         {
-            writeLogs(workingPath + "/log.txt", "rasConnect");
             ras = new RASDisplay();
             ras.Disconnect();
             if (isAdsl)
