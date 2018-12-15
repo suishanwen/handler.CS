@@ -1694,10 +1694,6 @@ namespace handler
                     HwndUtil.closeHwnd(adslExcp);
                 }
                 isOnline = Net.isOnline();
-                if (isAdsl && !isOnline)
-                {
-                    rasOperate("connect");
-                }
                 if (isOnline && !isAdsl)
                 {
                     long kbs = Net.GetNetStatic(adslName);
@@ -1716,6 +1712,10 @@ namespace handler
                 }
                 if (isSysTask())
                 {
+                    if (isAdsl && !isOnline)
+                    {
+                        rasOperate("connect");
+                    }
                     p = 0;
                 }
                 if (isAutoVote && (overTimeCount >= 2|| failTooMuch))
