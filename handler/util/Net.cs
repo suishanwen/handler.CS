@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace handler.util
 {
@@ -52,6 +52,43 @@ namespace handler.util
                 Console.WriteLine("采用网卡上网");
                 return true;
             }
+        }
+
+        //写txt
+        private static void writeLogs(string pathName, string content)
+        {
+            if (content.Equals(""))
+            {
+                StreamWriter sw = new StreamWriter(pathName);
+                sw.Write("");
+                sw.Close();
+            }
+            else
+            {
+                StreamWriter sw = File.AppendText(pathName);
+                sw.WriteLine(content);
+                sw.Close();
+            }
+        }
+
+        public static long GetNetStatic(String adslName)
+        {
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+            if (nics == null || nics.Length < 1)
+            {
+                Console.WriteLine("  No network interfaces found.");
+            }
+            foreach (NetworkInterface adapter in nics)
+            {
+                if(adapter.Name == adslName)
+                {
+                    IPv4InterfaceStatistics ipv4Statistics = adapter.GetIPv4Statistics();
+                    long send = ipv4Statistics.BytesSent / 1024;
+                    long recv = ipv4Statistics.BytesReceived / 1024;
+                    return send + recv;
+                }
+            }
+            return 0;
         }
     }
 }

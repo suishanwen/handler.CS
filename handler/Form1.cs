@@ -1693,6 +1693,16 @@ namespace handler
                     HwndUtil.closeHwnd(adslExcp);
                 }
                 isOnline = Net.isOnline();
+                if (isOnline)
+                {
+                    long kbs = Net.GetNetStatic(adslName);
+                    if(adslName != "宽带连接" && isAutoVote && kbs > 2048)
+                    {
+                        writeLogs(workingPath + "/log.txt",taskName+ "流量大于2M,拉黑！");
+                        addVoteProjectNameDroped(false);
+                        switchWatiOrder();
+                    }
+                }
                 taskChange = IniReadWriter.ReadIniKeys("Command", "taskChange" + no, pathShare + "/Task.ini");
                 if (taskChange.Equals("1"))
                 {
