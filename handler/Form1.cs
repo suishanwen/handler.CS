@@ -1712,6 +1712,10 @@ namespace handler
                 if (isSysTask())
                 {
                     p = 0;
+                    if (!isOnline)
+                    {
+                        rasOperate("connect");
+                    }
                 }
                 if (isAutoVote && (overTimeCount >= 2|| failTooMuch))
                 {

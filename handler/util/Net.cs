@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
@@ -51,23 +50,6 @@ namespace handler.util
             {
                 Console.WriteLine("采用网卡上网");
                 return true;
-            }
-        }
-
-        //写txt
-        private static void writeLogs(string pathName, string content)
-        {
-            if (content.Equals(""))
-            {
-                StreamWriter sw = new StreamWriter(pathName);
-                sw.Write("");
-                sw.Close();
-            }
-            else
-            {
-                StreamWriter sw = File.AppendText(pathName);
-                sw.WriteLine(content);
-                sw.Close();
             }
         }
 
