@@ -45,12 +45,6 @@ namespace handler
         private const string TASK_SYS_SHUTDOWN = "关机";
         private const string TASK_SYS_RESTART = "重启";
         private const string TASK_SYS_NET_TEST = "网络测试";
-        private const string TASK_HANGUP_MM2 = "mm2";
-        private const string TASK_HANGUP_YUKUAI = "yukuai";
-        private const string TASK_HANGUP_XX = "xx";
-        private const string TASK_HANGUP_MYTH = "myth";
-        private const string TASK_HANGUP_DANDAN = "dandan";
-        private const string TASK_HANGUP_DAHAI = "dahai";
         private const string TASK_VOTE_JIUTIAN = "九天";
         private const string TASK_VOTE_YUANQIU = "圆球";
         private const string TASK_VOTE_MM = "MM";
@@ -405,7 +399,7 @@ namespace handler
             Process[] process = processCheck();
             if (process.Length > 0)
             {
-                if (isHangUpTask()||isVoteTask())
+                if (isVoteTask())
                 {
                     int counter = 1;
                     while (!Net.isOnline() && counter < 60)
@@ -548,60 +542,6 @@ namespace handler
                 IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
                 updateSoft();
                 mainThreadClose();
-            }
-            else if (taskName.Equals(TASK_HANGUP_XX))//XX挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "xx", pathShare + "/CF.ini");
-                }
-                netCheck();
-                startProcess(taskPath);
-                xxStart();
-            }else if (taskName.Equals(TASK_HANGUP_MYTH))//MYTH挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "myth", pathShare + "/CF.ini");
-                }
-                netCheck();
-                startProcess(taskPath);
-                mythStart();
-            }else if (taskName.Equals(TASK_HANGUP_DANDAN))//丹丹挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "dandan", pathShare + "/CF.ini");
-                }
-                netCheck();
-                startProcess(taskPath);
-                dandanStart();
-            }
-            else if (taskName.Equals(TASK_HANGUP_MM2))//MM2挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "mm2", pathShare + "/CF.ini");
-                }
-                // start MM2 function
-            }
-            else if (taskName.Equals(TASK_HANGUP_YUKUAI))//愉快挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "yukuai", pathShare + "/CF.ini");
-                }
-                // start YUKUAI function
-            }
-            else if (taskName.Equals(TASK_HANGUP_DAHAI))//大海挂机
-            {
-                if (taskChange.Equals("1"))
-                {
-                    taskPath = IniReadWriter.ReadIniKeys("Command", "dahai", pathShare + "/CF.ini");
-                }
-                netCheck();
-                startProcess(taskPath);
-                dahaiStart();
             }
             else if (isVoteTask())//投票
             {
@@ -771,208 +711,6 @@ namespace handler
                 return;
             }
             IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-        }
-
-        //xx启动
-        private void xxStart()
-        {
-            IntPtr hwnd = IntPtr.Zero;
-            projectName = TASK_HANGUP_XX;
-            do
-            {
-                if (!nameCheck())
-                {
-                    return;
-                }
-                hwnd = HwndUtil.FindWindow("#32770", "20160911-01");
-                Thread.Sleep(500);
-            } while (hwnd == IntPtr.Zero);
-            Thread.Sleep(1000);
-            //设置工号
-            if (inputId.Equals("1"))
-            {
-                String id = workerId;
-                if (tail.Equals("1"))
-                {
-                    id = workerId + "-" + (no > 9 ? no.ToString() : "0" + no);
-                }
-                IntPtr hwndEx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwnd, hwndEx, "#32770", null);
-                hwndEx = HwndUtil.FindWindowEx(hwndEx, IntPtr.Zero, "Edit", null);
-                HwndUtil.setText(hwndEx, id);
-            }
-            Thread.Sleep(1000);
-            //启动
-            IntPtr hwndExx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "Button", "启动");
-            HwndUtil.clickHwnd(hwndExx);
-            finishStart();
-        }
-
-        //myth启动
-        private void mythStart()
-        {
-            IntPtr hwnd = IntPtr.Zero;
-            IntPtr hwndEx1, hwndEx2, hwndEx3, hwndEx4, hwndE;
-            projectName = TASK_HANGUP_MYTH;
-            int startCount = 0;
-            do
-            {
-                if (!nameCheck())
-                {
-                    return;
-                }
-                hwnd = HwndUtil.FindWindow("WindowsForms10.Window.8.app.0.33c0d9d", null);
-                hwnd = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.Window.8.app.0.33c0d9d", null);
-                hwndEx1 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.EDIT.app.0.33c0d9d", null);
-                hwndEx2 = HwndUtil.FindWindowEx(hwnd, hwndEx1, "WindowsForms10.EDIT.app.0.33c0d9d", null);
-                hwndEx3 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.STATIC.app.0.33c0d9d", "已连接");
-                hwndEx4 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.STATIC.app.0.33c0d9d", "运行中....");
-                startCount++;
-                Thread.Sleep(1000);
-                hwndE = HwndUtil.FindWindow("#32770", "");
-                hwndE = HwndUtil.FindWindowEx(hwndE, IntPtr.Zero, "Static", "由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。");
-                if (hwndE != IntPtr.Zero)
-                {
-                    Process[] pros = getProcess("AutoUpdate.dll");
-                    if (pros.Length > 0)
-                    {
-                        foreach (Process p in pros)
-                        {
-                            p.Kill();
-                        }
-                        writeLogs(workingPath + "/log.txt", "Myth start Fail,restart");//清空日志
-                        taskChangeProcess(false);
-                        return;
-                    }
-                }
-                if (startCount > 90)
-                {
-                    writeLogs(workingPath + "/log.txt", "Myth didn't show in 90s,restart");//清空日志
-                    taskChangeProcess(false);
-                    return;
-                }
-            } while (hwndEx1 == IntPtr.Zero || hwndEx2 == IntPtr.Zero || (hwndEx3 == IntPtr.Zero && hwndEx4 == IntPtr.Zero));
-            Thread.Sleep(1000);
-            //设置工号
-            if (inputId.Equals("1"))
-            {
-                String id = workerId;
-                if (tail.Equals("1"))
-                {
-                    id = workerId + "-" + (no > 9 ? no.ToString() : "0" + no);
-                }
-                HwndUtil.setText(hwndEx1, id);
-            }
-            HwndUtil.setText(hwndEx2, delay.ToString());
-            StringBuilder title = new StringBuilder(512);
-            HwndUtil.GetWindowText(hwnd, title, title.Capacity);
-            HwndUtil.setText(hwnd, title.ToString()+" [Handler监控中]");
-            Thread.Sleep(1000);
-            finishStart();
-        }
-
-        //dandan启动
-        private void dandanStart()
-        {
-            IntPtr hwnd = IntPtr.Zero;
-            bool loginIn = false;
-            projectName = TASK_HANGUP_DANDAN;
-            do
-            {
-                if (!nameCheck())
-                {
-                    return;
-                }
-                bool online = Net.isOnline();
-                if (!online)
-                {
-                    rasOperate("connect");
-                }
-                hwnd = HwndUtil.FindWindow("WindowsForms10.Window.8.app.0.378734a", "登录");
-                if (hwnd != IntPtr.Zero)
-                {
-                    IntPtr hwndEx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.378734a", "登录");
-                    HwndUtil.clickHwnd(hwndEx);
-                }
-                Thread.Sleep(500);
-                IntPtr hwndIn = HwndUtil.FindWindow("WindowsForms10.Window.8.app.0.378734a", "挂机");
-                if (hwndIn != IntPtr.Zero)
-                {
-                    loginIn = true;
-                }
-            } while (!loginIn);
-            Thread.Sleep(1000);
-            finishStart();
-        }
-        //dahai启动
-        private void dahaiStart()
-        {
-            IntPtr hwnd = IntPtr.Zero;
-            IntPtr hwndEx1, hwndEx2, hwndEx3, hwndEx4;
-            StringBuilder test = new StringBuilder(512);
-            projectName = TASK_HANGUP_DAHAI;
-            int startCount = 0;
-            do
-            {
-                if (!nameCheck())
-                {
-                    return;
-                }
-                hwnd = HwndUtil.FindWindow("WindowsForms10.Window.8.app.0.33c0d9d", null);
-                hwndEx1 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.Window.8.app.0.33c0d9d", "");
-                hwndEx2 = HwndUtil.FindWindowEx(hwndEx1, IntPtr.Zero, "WindowsForms10.EDIT.app.0.33c0d9d", null);
-                hwndEx2 = HwndUtil.FindWindowEx(hwndEx1, hwndEx2, "WindowsForms10.EDIT.app.0.33c0d9d", null);
-                hwndEx3 = HwndUtil.FindWindowEx(hwndEx1, hwndEx2, "WindowsForms10.EDIT.app.0.33c0d9d", null);
-                hwndEx4 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.Window.8.app.0.33c0d9d", "statusStrip1");
-                startCount++;
-                Thread.Sleep(1000);
-                IntPtr hwndE = HwndUtil.FindWindow("#32770", "");
-                hwndE = HwndUtil.FindWindowEx(hwndE, IntPtr.Zero, "Static", "由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。");
-                if (hwndE != IntPtr.Zero)
-                {
-                    Process[] pros = getProcess("AutoUpdate.dll");
-                    if (pros.Length > 0)
-                    {
-                        foreach (Process p in pros)
-                        {
-                            p.Kill();
-                        }
-                        writeLogs(workingPath + "/log.txt", "Dahai start Fail,restart");//清空日志
-                        taskChangeProcess(false);
-                        return;
-                    }
-                }
-                if (startCount > 90)
-                {
-                   
-                    writeLogs(workingPath + "/log.txt", "Dahai didn't show in 90s,restart");//清空日志
-                    taskChangeProcess(false);
-                    return;
-                }
-                HwndUtil.setText(hwnd, "大海挂机[Handler监控中]");
-                HwndUtil.GetWindowText(hwnd, test, test.Capacity);
-            } while (hwndEx1 == IntPtr.Zero || hwndEx2 == IntPtr.Zero || hwndEx3 == IntPtr.Zero || hwndEx4 == IntPtr.Zero || !"大海挂机[Handler监控中]".Equals(test.ToString()));
-            HwndUtil.GetWindowText(hwnd, test, test.Capacity);
-            writeLogs(workingPath + "/log.txt", test.ToString());//清空日志
-            Thread.Sleep(1000);
-            //设置工号
-            if (inputId.Equals("1"))
-            {
-                String id = workerId;
-                if (tail.Equals("1"))
-                {
-                    id = workerId + "-" + (no > 9 ? no.ToString() : "0" + no);
-                }
-                HwndUtil.setText(hwndEx3, id);
-            }
-            HwndUtil.setText(hwndEx2, delay.ToString());
-            Thread.Sleep(1000);
-            finishStart();
         }
 
         //hwndThread创建
@@ -1299,7 +1037,6 @@ namespace handler
                 Process pro = Process.Start(info);
                 pro.WaitForExit();
                 pro.Close();
-                writeLogs(workingPath + "/log.txt", "startProcess:" + pathName);
                 Thread.Sleep(500);
             }
             catch (Exception e)
@@ -1821,12 +1558,10 @@ namespace handler
             IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
             IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "超时票数");
             hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
-            writeLogs(workingPath + "/log.txt", "hwndEx："+ hwndEx);
             try
             {
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
-                writeLogs(workingPath + "/log.txt", "hwndEx：" + hwndEx);
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 return int.Parse(succ.ToString());
@@ -1847,7 +1582,6 @@ namespace handler
             IntPtr hwndEx = HwndUtil.FindWindowEx(hwndTGroupBox, IntPtr.Zero, "TEdit", null);
             try
             {
-                writeLogs(workingPath + "/log.txt", "hwndEx：" + hwndEx);
                 StringBuilder succ = new StringBuilder(512);
                 HwndUtil.GetWindowText(hwndEx, succ, 512);
                 return int.Parse(succ.ToString());
@@ -1930,17 +1664,17 @@ namespace handler
             }
         }
 
-        //是否为挂机项目
-        private bool isHangUpTask()
-        {
-            return taskName.Equals(TASK_HANGUP_XX) || taskName.Equals(TASK_HANGUP_MYTH)|| taskName.Equals(TASK_HANGUP_MM2)|| taskName.Equals(TASK_HANGUP_YUKUAI)|| taskName.Equals(TASK_HANGUP_DANDAN) || taskName.Equals(TASK_HANGUP_DAHAI);
-        }
-
         //任务监控
         private void taskMonitor()
         {
             refreshIcon();
             overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
+            int delay = 1000;
+            if (adslName == "宽带连接")
+            {
+                overTime *= 2;
+                delay /= 2;
+            }
             int p = 0;
             int s = 0;
             bool isOnline = false;
@@ -2048,7 +1782,7 @@ namespace handler
 
                 }
                 label2.Text = p.ToString();
-                Thread.Sleep(1000);
+                Thread.Sleep(delay);
             }
             while (p == 0 || (p > 0 && p < overTime) || (p < 0 && p > -overTime));
             if (taskName.Equals(TASK_VOTE_MM))
@@ -2091,30 +1825,10 @@ namespace handler
                     }
                     if (taskPath.Equals("Writein"))
                     {
-                        if (taskName.Equals(TASK_HANGUP_MM2))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "mm2", pathShare + "/CF.ini");
-                        }
-                        else if (taskName.Equals(TASK_HANGUP_YUKUAI))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "yukuai", pathShare + "/CF.ini");
-                        }
-                        else if (taskName.Equals(TASK_HANGUP_XX))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "xx", pathShare + "/CF.ini");
-                        }
-                        else if (taskName.Equals(TASK_HANGUP_MYTH))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "myth", pathShare + "/CF.ini");
-                        }
-                        else if (taskName.Equals(TASK_HANGUP_DANDAN))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "dandan", pathShare + "/CF.ini");
-                        }
-                        else if (taskName.Equals(TASK_HANGUP_DAHAI))
-                        {
-                            taskPath = IniReadWriter.ReadIniKeys("Command", "dahai", pathShare + "/CF.ini");
-                        }
+                        //if (taskName.Equals(TASK_HANGUP_MM2))
+                        //{
+                        //    taskPath = IniReadWriter.ReadIniKeys("Command", "mm2", pathShare + "/CF.ini");
+                        //}
                     }
                     else
                     {
@@ -2191,8 +1905,8 @@ namespace handler
                 {
                     failTooMuch = true;
                 }
+                writeLogs(workingPath + "/log.txt", "success:" + succ + " last:" + succCount);
                 succCount = succ;
-                writeLogs(workingPath + "/log.txt", "success:" + succCount);
             }
         }
     }
