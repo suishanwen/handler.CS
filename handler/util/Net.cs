@@ -56,29 +56,27 @@ namespace handler.util
 
         public static long GetNetStatic(String adslName)
         {
-            try
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+            if (nics == null || nics.Length < 1)
             {
-                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-                if (nics == null || nics.Length < 1)
+                Console.WriteLine("  No network interfaces found.");
+            }
+            foreach (NetworkInterface adapter in nics)
+            {
+                if (adapter.Name == adslName)
                 {
-                    Console.WriteLine("  No network interfaces found.");
-                }
-                foreach (NetworkInterface adapter in nics)
-                {
-                    if (adapter.Name == adslName)
+                    try
                     {
                         IPv4InterfaceStatistics ipv4Statistics = adapter.GetIPv4Statistics();
                         long send = ipv4Statistics.BytesSent / 1024;
                         long recv = ipv4Statistics.BytesReceived / 1024;
                         return send + recv;
                     }
+                    catch (Exception)
+                    {
+                        return 0;
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                StreamWriter sw = File.AppendText(Environment.CurrentDirectory + "/log.txt");
-                sw.WriteLine(e.ToString());
-                sw.Close();
             }
             return 0;
         }
