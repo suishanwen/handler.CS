@@ -264,7 +264,6 @@ namespace handler
         //关闭进程
         private void killProcess(bool stopIndicator)
         {
-            writeLogs(workingPath + "/log.txt", "killProcess");
             //传票结束
             if (stopIndicator && isVoteTask())
             {
@@ -426,7 +425,6 @@ namespace handler
         //切换任务流程
         private void taskChangeProcess(bool stopIndicator)
         {
-            writeLogs(workingPath + "/log.txt", "taskChangeProcess");
             if (!File.Exists(@".\explorer-restart.bat"))
             {
                 String[] Lines = { @"taskkill /f /im explorer.exe & start explorer.exe" };
