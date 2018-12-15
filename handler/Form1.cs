@@ -1720,7 +1720,7 @@ namespace handler
                 }
                 if (isAutoVote && (overTimeCount >= 2|| failTooMuch))
                 {
-                    writeLogs(workingPath + "/log.txt", "超时2次或一分钟成功低于2,拉黑！");
+                    writeLogs(workingPath + "/log.txt", "超时2次或连续两分钟成功过低,拉黑！");
                     addVoteProjectNameDroped(false);
                     switchWatiOrder();
                 }
@@ -1901,21 +1901,26 @@ namespace handler
                 int succ = 0;
                 if (taskName.Equals(TASK_VOTE_JIUTIAN))
                 {
-                    timerChecked++;
                     succ = getJiutianSucc();
                 }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
-                    timerChecked++;
                     succ = getMMSucc();
                 }
                 else if (taskName.Equals(TASK_VOTE_YUANQIU))
                 {
-                    timerChecked++;
                     succ = getYuanqiuSucc();
                 }
-                if (succ - succCount < 2 && timerChecked >= 2)
+                double price = 0;
+                try
                 {
+                    price = double.Parse(IniReadWriter.ReadIniKeys("Command", "Price", pathShare + "/AutoVote.ini"));
+                }
+                catch (Exception) { }
+                int validCount = price >= 1 ? 1 : 2;
+                if (succ - succCount < validCount)
+                {
+                    timerChecked++;
                     failTooMuch = true;
                 }
                 writeLogs(workingPath + "/log.txt", "success:" + succ + " last:" + succCount);
