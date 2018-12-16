@@ -6,6 +6,10 @@ namespace handler.util
     {
         public static void DeleteFolder(string dir)
         {
+            if (!Directory.Exists(dir))
+            {
+                return;
+            }
             foreach (string d in Directory.GetFileSystemEntries(dir))
             {
                 if (File.Exists(d))
