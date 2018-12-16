@@ -1907,7 +1907,10 @@ namespace handler
                 if (succ - succCount < validCount)
                 {
                     timerChecked++;
-                    failTooMuch = true;
+                    if (timerChecked >= 2)
+                    {
+                        failTooMuch = true;
+                    }
                 }
                 else
                 {
