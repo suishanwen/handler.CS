@@ -1056,10 +1056,6 @@ namespace handler
                 string exeName = pathName.Substring(pathName.LastIndexOf("\\") + 1);
                 string sourcePath = pathName.Substring(0,pathName.LastIndexOf("\\"));
                 string targetPath = workingPath + "\\投票项目\\" + sourcePath.Substring(sourcePath.IndexOf("投票项目") + 5);
-                if (false == Directory.Exists(workingPath + "\\投票项目"))
-                {
-                    Directory.CreateDirectory(targetPath);
-                }
                 if (false == Directory.Exists(targetPath))
                 {
                     Directory.CreateDirectory(targetPath);
