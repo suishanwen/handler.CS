@@ -409,16 +409,28 @@ namespace handler
             }
         }
 
+        private void restartExplorer()
+        {
+            Thread t = new Thread(restartExplorerT);
+            t.Start();
+            //if (!File.Exists(@".\explorer-restart.bat"))
+            //{
+            //    String[] Lines = { @"taskkill /f /im explorer.exe & start explorer.exe" };
+            //    File.WriteAllLines(@".\explorer-restart.bat", Lines, Encoding.GetEncoding("GBK"));
+            //}
+            //startProcess(workingPath+@"\explorer-restart.bat");
+        }
+
+        private void restartExplorerT()
+        {
+            InvokeCmd("Taskkill /f /im explorer.exe & start explorer.exe & ping 127.1 -n 1 >nul");
+        }
+
         //切换任务流程
         private void taskChangeProcess(bool stopIndicator)
         {
-            if (!File.Exists(@".\explorer-restart.bat"))
-            {
-                String[] Lines = { @"taskkill /f /im explorer.exe & start explorer.exe" };
-                File.WriteAllLines(@".\explorer-restart.bat", Lines, Encoding.GetEncoding("GBK"));
-            }
             //重启资源管理器
-            //startProcess(workingPath+@"\explorer-restart.bat");
+            restartExplorer();
             succCount = 0;
             failTooMuch = false;
             timerChecked = 0;
@@ -1052,6 +1064,26 @@ namespace handler
             Thread.Sleep(500);
         }
 
+
+        private void update()
+        {
+            if (!File.Exists("./update.bat"))
+            {
+                string path = "";
+                string line1 = "Taskkill /F /IM handler.exe";
+                string line2 = "ping -n 3 127.0.0.1>nul";
+                string line3 = "del /s /Q " + @"""" + Environment.CurrentDirectory + "\\handler.exe" + @"""";
+                string line4 = "ping -n 3 127.0.0.1>nul";
+                string line5 = @"ren """ + Environment.CurrentDirectory + @"\\handler-new.exe"" ""handler.exe""";
+                string line6 = "ping -n 3 127.0.0.1>nul";
+                string line7 = "start " + @""""" " + @"""" + Environment.CurrentDirectory + "\\handler.exe" + @"""";
+                string[] lines = { "@echo off", line1, line2, line3, line4, line5, line6, line7 };
+                File.WriteAllLines(@"./update.bat", lines, Encoding.GetEncoding("GBK"));
+            }
+            StartProcess(Environment.CurrentDirectory + "\\update.bat");
+
+        }
+
         //升级程序
         private void updateSoft()
         {
@@ -1078,21 +1110,7 @@ namespace handler
                     Thread.Sleep(1000);
                 }
             } while (isDownloading);
-            if (!File.Exists("./update.bat"))
-            {
-                string path = "";
-                string line1 = "Taskkill /F /IM handler.exe";
-                string line2 = "ping -n 3 127.0.0.1>nul";
-                string line3 = "del /s /Q " + @""""+ Environment.CurrentDirectory + "\\handler.exe"+@"""";
-                string line4 = "ping -n 3 127.0.0.1>nul";
-                string line5 = @"ren """ + Environment.CurrentDirectory + @"\\handler-new.exe"" ""handler.exe""";
-                string line6 = "ping -n 3 127.0.0.1>nul";
-                string line7 = "start " + @""""" "+@"""" + Environment.CurrentDirectory + "\\handler.exe"+ @"""";
-                string[] lines = { "@echo off", line1, line2, line3, line4, line5, line6, line7 };
-                File.WriteAllLines(@"./update.bat", lines, Encoding.GetEncoding("GBK"));
-            }
-
-            StartProcess(Environment.CurrentDirectory + "\\update.bat");
+            update();
             Application.Exit();//退出整个应用程序
         }
 
@@ -1117,6 +1135,28 @@ namespace handler
                 return false;
             }
             return mreg.GetValue("Version").ToString().Substring(0,1)=="8";
+        }
+
+        private static string InvokeCmdLines(string[] cmdArgs)
+        {
+            string Tstr = "";
+            Process p = new Process();
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+            foreach(string arg in cmdArgs)
+            {
+                p.StandardInput.WriteLine(arg);
+            }
+            p.StandardInput.WriteLine("exit");
+            Tstr = p.StandardOutput.ReadToEnd();
+            p.WaitForExit();
+            p.Close();
+            return Tstr;
         }
 
         private static string InvokeCmd(string cmdArgs)
@@ -1651,7 +1691,7 @@ namespace handler
         //任务监控
         private void taskMonitor()
         {
-            refreshIcon();
+            //refreshIcon();
             overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
             int delay = 1000;
             if (isAdsl)
