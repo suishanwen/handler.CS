@@ -382,21 +382,6 @@ namespace handler
                     }
                 }
             }
-            IntPtr hwndCheck = HwndUtil.FindWindow("WTWindow", null);
-            if (hwndCheck != IntPtr.Zero)
-            {
-                IntPtr hwndEx = HwndUtil.FindWindowEx(hwndCheck, IntPtr.Zero, "SysTabControl32", "");
-                hwndEx = HwndUtil.FindWindowEx(hwndEx, IntPtr.Zero, "Button", "");
-                hwndEx = HwndUtil.FindWindowEx(hwndEx, IntPtr.Zero, "Button", "结束投票");
-                if(hwndEx != IntPtr.Zero)
-                {
-                    HwndUtil.clickHwnd(hwndEx);
-                }
-                else
-                {
-                    HwndUtil.closeHwnd(hwndCheck);
-                }
-            }
             Process[] process = processCheck();
             if (process.Length > 0)
             {
@@ -1714,6 +1699,7 @@ namespace handler
                 {
                     if (isAdsl && !isOnline)
                     {
+                        writeLogs(workingPath + "/log.txt", "ADSL待命断网拨号！");
                         rasOperate("connect");
                     }
                     p = 0;
@@ -1922,6 +1908,10 @@ namespace handler
                 {
                     timerChecked++;
                     failTooMuch = true;
+                }
+                else
+                {
+                    timerChecked = 0;
                 }
                 writeLogs(workingPath + "/log.txt", "success:" + succ + " last:" + succCount);
                 succCount = succ;
