@@ -46,6 +46,7 @@ namespace handler
         private const string TASK_SYS_SHUTDOWN = "关机";
         private const string TASK_SYS_RESTART = "重启";
         private const string TASK_SYS_NET_TEST = "网络测试";
+        private const string TASK_SYS_CLEAN = "CLEAN";
         private const string TASK_VOTE_JIUTIAN = "九天";
         private const string TASK_VOTE_YUANQIU = "圆球";
         private const string TASK_VOTE_MM = "MM";
@@ -191,7 +192,7 @@ namespace handler
         //判断当前是否为系统任务
         private bool isSysTask()
         {
-            return taskName.Equals(TASK_SYS_UPDATE) || taskName.Equals(TASK_SYS_WAIT_ORDER) || taskName.Equals(TASK_SYS_SHUTDOWN) || taskName.Equals(TASK_SYS_RESTART) || taskName.Equals(TASK_SYS_NET_TEST);
+            return taskName.Equals(TASK_SYS_UPDATE) || taskName.Equals(TASK_SYS_CLEAN) || taskName.Equals(TASK_SYS_WAIT_ORDER) || taskName.Equals(TASK_SYS_SHUTDOWN) || taskName.Equals(TASK_SYS_RESTART) || taskName.Equals(TASK_SYS_NET_TEST);
         }
 
         //判断当前是否为投票项目
@@ -444,6 +445,14 @@ namespace handler
             changeTask();
         }
 
+        //待命
+        private void waitOrder()
+        {
+            IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
+            IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
+            IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+        }
+
         //切换任务
         private void changeTask()
         {
@@ -476,8 +485,7 @@ namespace handler
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
                 if (taskName.Equals(TASK_SYS_WAIT_ORDER))
                 {
-                    IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                    IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+                    waitOrder();
                 }
             }
             else if (taskName.Equals(TASK_SYS_NET_TEST))//网络TEST
@@ -500,9 +508,7 @@ namespace handler
                     {
                         ras.Disconnect();
                     }
-                    IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
-                    IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                    IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+                    waitOrder();
                 }
                 else
                 {
@@ -511,9 +517,7 @@ namespace handler
             }
             else if (taskName.Equals(TASK_SYS_SHUTDOWN))//关机
             {
-                IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+                waitOrder();
                 Process.Start("shutdown.exe", "-s -t 0");
                 mainThreadClose();
             }
@@ -524,19 +528,20 @@ namespace handler
                 {
                     Computer.apiSetComputerNameEx(5, computerRename + "-" + no);
                 }
-                IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+                waitOrder();
                 Process.Start("shutdown.exe", "-r -t 0");
                 mainThreadClose();
             }
             else if (taskName.Equals(TASK_SYS_UPDATE))//升级
             {
-                IniReadWriter.WriteIniKeys("Command", "TaskName" + no, TASK_SYS_WAIT_ORDER, pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
-                IniReadWriter.WriteIniKeys("Command", "customPath" + no, "", pathShare + "/TaskPlus.ini");
+                waitOrder();
                 updateSoft();
                 mainThreadClose();
+            }
+            else if (taskName.Equals(TASK_SYS_CLEAN))//清理
+            {
+                waitOrder();
+                FileUtil.DeleteFolder(workingPath + "\\投票项目");
             }
             else if (isVoteTask())//投票
             {
@@ -1062,8 +1067,15 @@ namespace handler
                 {
                     if (i is FileInfo)     //判断是文件
                     {
-                        File.Copy(i.FullName, targetPath + "\\" + i.Name, false);      //不是文件夹即复制文件，true表示可以覆盖同名文件
-
+                        try
+                        {
+                            File.Copy(i.FullName, targetPath + "\\" + i.Name, false);      //复制文件，true表示可以覆盖同名文件
+                        }
+                        catch (Exception) { }
+                        finally
+                        {
+                            i.Refresh();
+                        }
                     }
                 }
                 pathName = targetPath + "\\" + exeName;
