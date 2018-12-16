@@ -182,7 +182,7 @@ namespace handler
             else
             {
                 StreamWriter sw = File.AppendText(pathName);
-                sw.WriteLine(content);
+                sw.WriteLine(content + " " + DateTime.Now.ToLocalTime().ToString());
                 sw.Close();
             }
         }
@@ -398,13 +398,13 @@ namespace handler
 
                 foreach (Process p in process)
                 {
-                    writeLogs(workingPath + "/log.txt", "killProcess  :" + p.ToString());
+                    writeLogs(workingPath + "/log.txt", "结束进程  :" + p.ToString());
                     try
                     {
                         p.Kill();
                     }
                     catch (Exception e) {
-                        writeLogs(workingPath + "/log.txt", "killProcess  :" + e.ToString());
+                        writeLogs(workingPath + "/log.txt", "结束进程失败  :" + e.ToString());
                     }
                 }
             }
@@ -414,12 +414,6 @@ namespace handler
         {
             Thread t = new Thread(restartExplorerT);
             t.Start();
-            //if (!File.Exists(@".\explorer-restart.bat"))
-            //{
-            //    String[] Lines = { @"taskkill /f /im explorer.exe & start explorer.exe" };
-            //    File.WriteAllLines(@".\explorer-restart.bat", Lines, Encoding.GetEncoding("GBK"));
-            //}
-            //startProcess(workingPath+@"\explorer-restart.bat");
         }
 
         private void restartExplorerT()
@@ -460,7 +454,10 @@ namespace handler
                 inputId = IniReadWriter.ReadIniKeys("Command", "printgonghao", pathShare + "/CF.ini");
                 tail = IniReadWriter.ReadIniKeys("Command", "tail", pathShare + "/CF.ini");
                 customPath = IniReadWriter.ReadIniKeys("Command", "customPath" + no, pathShare + "/TaskPlus.ini");
-                writeLogs(workingPath + "/log.txt", "taskChange:"+ customPath);
+                if (customPath != "")
+                {
+                    writeLogs(workingPath + "/log.txt", "taskChange:" + customPath);
+                }
             }
             else
             {
@@ -619,7 +616,7 @@ namespace handler
                             string taskNameCheck = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
                             if (StringUtil.isEmpty(taskNameCheck) || !taskNameCheck.Equals(taskName))
                             {
-                                writeLogs(workingPath + "/log.txt", "TaskName Write Error!");//清空日志
+                                writeLogs(workingPath + "/log.txt", "TaskName Write Error!");
                                 IniReadWriter.WriteIniKeys("Command", "TaskName" + no, taskName, pathShare + "/Task.ini");
                                 throw new Exception();
                             }
@@ -1039,30 +1036,46 @@ namespace handler
             }
             catch (Exception e)
             {
-                writeLogs(workingPath + "/log.txt", "拒绝访问:" + pathName);
+                MessageBox.Show("拒绝访问");
                 switchWatiOrder();
-                Process.Start("shutdown.exe", "-r -t 0");
+                //Process.Start("shutdown.exe", "-r -t 0");
             }
 
+        }
+
+        //复制投票项目到虚拟机并更改启动路径
+        private void copyAndChangePath(ref string pathName)
+        {
+            if (pathName.IndexOf("投票项目") != -1)
+            {
+                string exeName = pathName.Substring(pathName.LastIndexOf("\\") + 1);
+                string sourcePath = pathName.Substring(0,pathName.LastIndexOf("\\"));
+                string targetPath = workingPath + "\\投票项目\\" + sourcePath.Substring(sourcePath.IndexOf("投票项目") + 5);
+                if (false == Directory.Exists(targetPath))
+                {
+                    //创建pic文件夹
+                    Directory.CreateDirectory(targetPath);
+                }
+                DirectoryInfo dir = new DirectoryInfo(sourcePath);
+                FileSystemInfo[] fileinfo = dir.GetFileSystemInfos();  //获取目录下（不包含子目录）的文件和子目录
+                foreach (FileSystemInfo i in fileinfo)
+                {
+                    if (i is FileInfo)     //判断是文件
+                    {
+                        File.Copy(i.FullName, targetPath + "\\" + i.Name, false);      //不是文件夹即复制文件，true表示可以覆盖同名文件
+
+                    }
+                }
+                pathName = targetPath + "\\" + exeName;
+            }
         }
 
         //通过路径启动进程
         private void startProcess(string pathName)
         {
+            copyAndChangePath(ref pathName);
             Thread t = new Thread(new ParameterizedThreadStart(ThreadProcess));
             t.Start(pathName);
-        }
-
-        //通过路径启动进程
-        private void StartProcess(string pathName)
-        {
-            ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = pathName;
-            info.Arguments = "";
-            info.WorkingDirectory = pathName.Substring(0, pathName.LastIndexOf("\\"));
-            info.WindowStyle = ProcessWindowStyle.Normal;
-            Process pro = Process.Start(info);
-            Thread.Sleep(500);
         }
 
 
@@ -1081,7 +1094,7 @@ namespace handler
                 string[] lines = { "@echo off", line1, line2, line3, line4, line5, line6, line7 };
                 File.WriteAllLines(@"./update.bat", lines, Encoding.GetEncoding("GBK"));
             }
-            StartProcess(Environment.CurrentDirectory + "\\update.bat");
+            startProcess(Environment.CurrentDirectory + "\\update.bat");
 
         }
 
