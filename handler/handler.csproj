@@ -93,6 +93,7 @@
     <Compile Include="util\MouseKeyboard.cs" />
     <Compile Include="util\Net.cs" />
     <Compile Include="util\StringUtil.cs" />
+    <Compile Include="util\TaskInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

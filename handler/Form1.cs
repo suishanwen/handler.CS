@@ -129,6 +129,7 @@ namespace handler
             writeLogs(workingPath + "/log.txt", "");//清空日志
             this.timer1.Enabled = true;
             this.WindowState = FormWindowState.Minimized;
+            TaskInfos.Init(pathShare + "/AutoVote.ini");
             main = new Thread(_main);
             main.Start();
         }
@@ -1415,6 +1416,11 @@ namespace handler
         private void addVoteProjectNameDropedTemp(bool isAllProject)
         {
             string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+            TaskInfo taskInfo = TaskInfos.Get(no);
+            if (taskInfo != null && taskInfo.ProjectName != projectName)
+            {
+                return;
+            }
             if (isAllProject)
             {
                 projectName = projectName.Substring(0, projectName.IndexOf("_"));
@@ -1454,6 +1460,11 @@ namespace handler
         private void addVoteProjectNameDroped(bool isAllProject)
         {
             string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+            TaskInfo taskInfo = TaskInfos.Get(no);
+            if (taskInfo != null && taskInfo.ProjectName != projectName)
+            {
+                return;
+            }
             if (isAllProject)
             {
                 projectName = projectName.Substring(0, projectName.IndexOf("_"));
