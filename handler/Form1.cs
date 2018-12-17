@@ -1728,7 +1728,13 @@ namespace handler
         private void taskMonitor()
         {
             //refreshIcon();
-            overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
+            int maxKb = 200;
+            try
+            {
+                overTime = int.Parse(IniReadWriter.ReadIniKeys("Command", "cishu", pathShare + "/CF.ini"));
+                maxKb = int.Parse(IniReadWriter.ReadIniKeys("Command", "maxKb", pathShare + "/CF.ini"));
+            }
+            catch (Exception) { }
             int delay = 1000;
             if (isAdsl)
             {
@@ -1758,7 +1764,7 @@ namespace handler
                 if (isOnline && !isAdsl)
                 {
                     long kbs = Net.GetNetStatic(adslName);
-                    if( isAutoVote && kbs > 2048)
+                    if( isAutoVote && kbs > maxKb)
                     {
                         writeLogs(workingPath + "/log.txt",taskName+ "流量大于2M,拉黑！");
                         addVoteProjectNameDroped(false);
