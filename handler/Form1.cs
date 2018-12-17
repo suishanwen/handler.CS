@@ -934,6 +934,10 @@ namespace handler
             IntPtr hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "2");
             if (hwndEx == IntPtr.Zero)
             {
+                hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "4");
+            }
+            if (hwndEx == IntPtr.Zero)
+            {
                 hwndEx = HwndUtil.FindWindowEx(ButtonHwnd, IntPtr.Zero, "Edit", "3");
             }
             HwndUtil.setText(hwndEx, (delay / 1000).ToString());
