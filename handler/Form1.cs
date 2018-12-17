@@ -1581,36 +1581,19 @@ namespace handler
         {
             if (taskName.Equals(TASK_VOTE_JIUTIAN))
             {
-                IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
-                if (hwnd != IntPtr.Zero)
-                {
-                
-                    IntPtr hwndSysTabControl32 = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "SysTabControl32", "");
-                    IntPtr hwndStat = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "投票统计");
-                    IntPtr hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
-                    if (hwndEx == IntPtr.Zero)
-                    {
-                        //WIN7主机环境
-                        hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
-                    }
-                    if (hwndEx == IntPtr.Zero)
-                    {
-                        //WIN10主机环境
-                        hwndEx = HwndUtil.FindWindowEx(hwndStat, IntPtr.Zero, jiutianCode, "运行时间");
-                    }
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx,jiutianCode, null);
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
-                    hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
-                    StringBuilder unUpload = new StringBuilder(512);
-                    HwndUtil.GetWindowText(hwndEx, unUpload, unUpload.Capacity);
-                    return int.Parse(unUpload.ToString()) > 0;
-                }
-                return false;
-            }else
+                return getJiutianSucc() > 0;
+            }
+            else if(taskName.Equals(TASK_VOTE_MM))
+            {
+                return getMMSucc() > 0;
+            }
+            else if (taskName.Equals(TASK_VOTE_YUANQIU))
+            {
+                return getYuanqiuSucc() > 0;
+            }
             {
                 return true;
             }
-            
         }
 
         //获取九天成功数
