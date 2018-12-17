@@ -1621,9 +1621,7 @@ namespace handler
             {
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
                 hwndEx = HwndUtil.FindWindowEx(hwndStat, hwndEx, jiutianCode, null);
-                StringBuilder succ = new StringBuilder(512);
-                HwndUtil.GetWindowText(hwndEx, succ, 512);
-                return int.Parse(succ.ToString());
+                return int.Parse(HwndUtil.GetControlText(hwndEx));
             }
             catch (Exception) {
                 writeLogs(workingPath + "/log.txt", "获取九天成功失败！");
@@ -1639,11 +1637,10 @@ namespace handler
             IntPtr hwnd = HwndUtil.FindWindow("TForm1", null);
             IntPtr hwndTGroupBox = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "TGroupBox", "状态");
             IntPtr hwndEx = HwndUtil.FindWindowEx(hwndTGroupBox, IntPtr.Zero, "TEdit", null);
+            hwndEx = HwndUtil.FindWindowEx(hwndTGroupBox, hwndEx, "TEdit", null);
             try
             {
-                StringBuilder succ = new StringBuilder(512);
-                HwndUtil.GetWindowText(hwndEx, succ, 512);
-                return int.Parse(succ.ToString());
+                return int.Parse(HwndUtil.GetControlText(hwndEx));
             }
             catch (Exception)
             {
