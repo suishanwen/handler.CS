@@ -1766,7 +1766,7 @@ namespace handler
                     long kbs = Net.GetNetStatic(adslName);
                     if( isAutoVote && kbs > maxKb)
                     {
-                        writeLogs(workingPath + "/log.txt",taskName+ "流量大于2M,拉黑！");
+                        writeLogs(workingPath + "/log.txt",taskName+ "流量大于"+ maxKb + "KB,拉黑！");
                         addVoteProjectNameDroped(false);
                         switchWatiOrder();
                     }
