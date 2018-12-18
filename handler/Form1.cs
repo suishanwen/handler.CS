@@ -774,15 +774,18 @@ namespace handler
                 HwndUtil.setText(hwndEx, id);
             }
             //开始投票
-            int count = 1;
+            int count = 0;
             do
             {
                 hwndEx = HwndUtil.FindWindowEx(hwnd, IntPtr.Zero, "TButton", "开始");
                 Thread.Sleep(1000);
-                writeLogs(".\\log.txt", string.Format("等待圆球启动{0}秒",count));
+                if (count > 0)
+                {
+                    writeLogs(".\\log.txt", string.Format("等待圆球启动{0}秒", count));
+                }
                 count++;
 
-            } while (hwndEx == IntPtr.Zero||count<5);
+            } while (hwndEx == IntPtr.Zero&&count<5);
             createHwndThread(hwndEx);
             finishStart();
         }
