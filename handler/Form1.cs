@@ -428,8 +428,7 @@ namespace handler
             //重启资源管理器
             restartExplorer();
             succCount = 0;
-            failTooMuch = false;
-            timerChecked = 0;
+            timerChecked = -2;
             if (StringUtil.isEmpty(taskName))
             {
                 taskName = IniReadWriter.ReadIniKeys("Command", "TaskName" + no, pathShare + "/Task.ini");
@@ -711,6 +710,8 @@ namespace handler
                 return;
             }
             IniReadWriter.WriteIniKeys("Command", "TaskChange" + no, "0", pathShare + "/Task.ini");
+            failTooMuch = false;
+            timerChecked = 0;
         }
 
         //hwndThread创建
