@@ -271,7 +271,7 @@ namespace handler
             //传票结束
             if (stopIndicator && isVoteTask())
             {
-                writeLogs(workingPath + "/log.txt", "stop vote!");
+                writeLogs(workingPath + "/log.txt", string.Format("{0}传票结束!",projectName));
                 if (taskName.Equals(TASK_VOTE_JIUTIAN))
                 {
                     IntPtr hwnd = HwndUtil.FindWindow("WTWindow", null);
@@ -465,7 +465,7 @@ namespace handler
                 customPath = IniReadWriter.ReadIniKeys("Command", "customPath" + no, pathShare + "/TaskPlus.ini");
                 if (customPath != "")
                 {
-                    writeLogs(workingPath + "/log.txt", "taskChange:" + customPath);
+                    writeLogs(workingPath + "/log.txt", string.Format("切换任务:{0}" , customPath));
                 }
             }
             else
@@ -1480,6 +1480,7 @@ namespace handler
                 }
                 if (dropVote >= validDrop)
                 {
+                    writeLogs("./log.txt", string.Format("{0}到票临时拉黑5分钟", projectName));
                     voteProjectNameDroped += StringUtil.isEmpty(voteProjectNameDroped) ? projectName : "|" + projectName;
                     IniReadWriter.WriteIniKeys("Command", "voteProjectNameDropedTemp", voteProjectNameDroped, pathShare + "/AutoVote.ini");
                 }
@@ -1514,16 +1515,21 @@ namespace handler
             if (StringUtil.isEmpty(voteProjectNameDroped) || voteProjectNameDroped.IndexOf(projectName) == -1)
             {
                 int validDrop;
+                double blackRate;
                 try
                 {
                     validDrop = int.Parse(IniReadWriter.ReadIniKeys("Command", "validDrop", pathShare + "/AutoVote.ini"));
+                    blackRate = double.Parse(IniReadWriter.ReadIniKeys("Command", "blackRate", pathShare + "/AutoVote.ini"));
+
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     validDrop = 1;
+                    blackRate = 1;
                 }
                 if (dropVote >= validDrop)
                 {
+                    writeLogs("./log.txt", string.Format("{0}拉黑{1}分钟", projectName, blackRate * 30));
                     voteProjectNameDroped += StringUtil.isEmpty(voteProjectNameDroped) ? projectName : "|" + projectName;
                     IniReadWriter.WriteIniKeys("Command", "voteProjectNameDroped", voteProjectNameDroped, pathShare + "/AutoVote.ini");
                 }
@@ -1983,7 +1989,7 @@ namespace handler
                 {
                     timerChecked = 0;
                 }
-                writeLogs(workingPath + "/log.txt", "success:" + succ + " last:" + succCount);
+                writeLogs(workingPath + "/log.txt", "成功:" + succ + " 上次成功:" + succCount);
                 succCount = succ;
             }
         }
