@@ -999,6 +999,11 @@ namespace handler
                 jiutianCode = "Afx:400000:b:10011:1900015:0";
                 if (preparedCheck == IntPtr.Zero)
                 {
+                    //不换
+                    preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "_EL_Label", "加载成功 可开始投票");
+                }
+                if (preparedCheck == IntPtr.Zero)
+                {
                     //WIN7
                     preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "Afx:400000:b:10003:1900015:0", "加载成功 可开始投票");
                     jiutianCode = "Afx:400000:b:10003:1900015:0";
