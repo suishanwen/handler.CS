@@ -1001,6 +1001,7 @@ namespace handler
                 {
                     //不换
                     preparedCheck = HwndUtil.FindWindowEx(workCondition, IntPtr.Zero, "_EL_Label", "加载成功 可开始投票");
+                    jiutianCode = "_EL_Label";
                 }
                 if (preparedCheck == IntPtr.Zero)
                 {
