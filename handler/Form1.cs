@@ -1083,6 +1083,34 @@ namespace handler
                         }
                     }
                 }
+                //更新九天自动更新文件
+                if (exeName == "启动九天.bat")
+                {
+                    DirectoryInfo d = new DirectoryInfo(targetPath);
+                    FileSystemInfo[] fsi = d.GetFileSystemInfos();  //获取目录下（不包含子目录）的文件和子目录
+                    foreach (FileSystemInfo i in fsi)
+                    {
+                        if (i.Name.IndexOf(".exe") != -1 && i.Name != "vote.exe")
+                        {
+                            FileInfo fi = new FileInfo(i.FullName);
+                            try
+                            {
+                                File.Delete(targetPath + "\\vote.exe");
+                                fi.MoveTo(targetPath + "\\vote.exe");
+                                i.Delete();
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                            finally
+                            {
+                                i.Refresh();
+                                fi.Refresh();
+                            }
+                        }
+                    }
+                }
                 pathName = targetPath + "\\" + exeName;
             }
         }
