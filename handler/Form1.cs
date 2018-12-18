@@ -428,6 +428,7 @@ namespace handler
             //重启资源管理器
             restartExplorer();
             succCount = 0;
+            failTooMuch = false;
             timerChecked = -2;
             if (StringUtil.isEmpty(taskName))
             {
