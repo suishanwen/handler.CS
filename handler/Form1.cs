@@ -1457,6 +1457,22 @@ namespace handler
             return false;
         }
 
+        //MM错误检测
+        private bool mmExpCheck()
+        {
+            IntPtr hwnd = HwndUtil.FindWindow("#32770", "信息：");
+            if (hwnd != IntPtr.Zero)
+            {
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDroped(false);
+                }
+                HwndUtil.closeHwnd(hwnd);
+                return true;
+            }
+            return false;
+        }
+
         //九天到票检测
         private bool jiutianOverCheck(ref int s)
         {
@@ -1832,7 +1848,7 @@ namespace handler
                 }
                 else if (taskName.Equals(TASK_VOTE_MM))
                 {
-                    if (mmOverCheck())
+                    if (mmOverCheck()|| mmExpCheck())
                     {
                         killProcess(false);
                         switchWatiOrder();
