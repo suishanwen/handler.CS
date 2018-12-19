@@ -198,8 +198,8 @@ namespace handler
         //判断当前是否为投票项目
         private bool isVoteTask()
         {
-            String auto = IniReadWriter.ReadIniKeys("Command", "isAutoVote", pathShare + "/CF.ini");
-            isAutoVote = auto == "1";
+            String projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+            isAutoVote = !StringUtil.isEmpty(projectName);
             return taskName.Equals(TASK_VOTE_JIUTIAN) || taskName.Equals(TASK_VOTE_YUANQIU) || taskName.Equals(TASK_VOTE_MM) || taskName.Equals(TASK_VOTE_ML) || taskName.Equals(TASK_VOTE_JZ) || taskName.Equals(TASK_VOTE_JT) || taskName.Equals(TASK_VOTE_DM) || taskName.Equals(TASK_VOTE_OUTDO) || taskName.Equals(TASK_VOTE_PROJECT);
         }
 
@@ -467,10 +467,15 @@ namespace handler
                 {
                     writeLogs(workingPath + "/log.txt", string.Format("切换任务:{0}" , customPath));
                 }
-                if (isAutoVote)
+                if (isVoteTask()&& isAutoVote)
                 {
-                    string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", "./AutoVote.ini");
-                    string drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
+                    string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+                    string drop = "";
+                    try
+                    {
+                        drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
+                    }
+                    catch (Exception) { }
                     drop = drop.Replace("|" + projectName, "").Replace(projectName, "");
                     IniReadWriter.WriteIniKeys("Command", "drop", drop, "./handler.ini");
                 }
