@@ -1082,7 +1082,6 @@ namespace handler
                 switchWatiOrder();
                 //Process.Start("shutdown.exe", "-r -t 0");
             }
-
         }
 
         //复制投票项目到虚拟机并更改启动路径
@@ -1159,7 +1158,6 @@ namespace handler
         {
             if (!File.Exists("./update.bat"))
             {
-                string path = "";
                 string line1 = "Taskkill /F /IM handler.exe";
                 string line2 = "ping -n 3 127.0.0.1>nul";
                 string line3 = "del /s /Q " + @"""" + Environment.CurrentDirectory + "\\handler.exe" + @"""";
@@ -1654,9 +1652,11 @@ namespace handler
             IntPtr testHwnd = HwndUtil.FindWindowEx(hwndSysTabControl32, IntPtr.Zero, "Button", "输入验证码后回车,看不清直接回车切换");
             if (testHwnd != IntPtr.Zero)
             {
-                addVoteProjectNameDroped(true);
+                if (isAutoVote)
+                {
+                    addVoteProjectNameDroped(false);
+                }
                 killProcess(false);
-                rasOperate("disconnect");
                 return true;
             }
             return false;
