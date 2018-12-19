@@ -467,6 +467,13 @@ namespace handler
                 {
                     writeLogs(workingPath + "/log.txt", string.Format("切换任务:{0}" , customPath));
                 }
+                if (isAutoVote)
+                {
+                    string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", "./AutoVote.ini");
+                    string drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
+                    drop = drop.Replace("|" + projectName, "").Replace(projectName, "");
+                    IniReadWriter.WriteIniKeys("Command", "drop", drop, "./handler.ini");
+                }
             }
             else
             {
@@ -1552,8 +1559,10 @@ namespace handler
         private void addVoteProjectNameDroped(bool isAllProject)
         {
             string projectName = IniReadWriter.ReadIniKeys("Command", "ProjectName", pathShare + "/AutoVote.ini");
+            //一机器只允许拉黑投票一次
+            string drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
             TaskInfo taskInfo = TaskInfos.Get(no);
-            if (taskInfo != null && taskInfo.ProjectName != projectName)
+            if ((taskInfo != null && taskInfo.ProjectName != projectName) || drop.IndexOf(projectName) != -1)
             {
                 return;
             }
@@ -1561,6 +1570,8 @@ namespace handler
             {
                 projectName = projectName.Substring(0, projectName.IndexOf("_"));
             }
+            drop += StringUtil.isEmpty(drop) ? projectName : "|" + projectName;
+            IniReadWriter.WriteIniKeys("Command", "drop", drop, "./handler.ini");
             string voteProjectNameDroped = IniReadWriter.ReadIniKeys("Command", "voteProjectNameDroped", pathShare + "/AutoVote.ini");
             int dropVote=0;
             try
