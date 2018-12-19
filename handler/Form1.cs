@@ -476,8 +476,10 @@ namespace handler
                         drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
                     }
                     catch (Exception) { }
-                    drop = drop.Replace("|" + projectName, "").Replace(projectName, "");
-                    IniReadWriter.WriteIniKeys("Command", "drop", drop, "./handler.ini");
+                    if (drop != projectName)
+                    {
+                        IniReadWriter.WriteIniKeys("Command", "drop", "", "./handler.ini");
+                    }
                 }
             }
             else
@@ -1567,7 +1569,7 @@ namespace handler
             //一机器只允许拉黑投票一次
             string drop = IniReadWriter.ReadIniKeys("Command", "drop", "./handler.ini");
             TaskInfo taskInfo = TaskInfos.Get(no);
-            if ((taskInfo != null && taskInfo.ProjectName != projectName) || drop.IndexOf(projectName) != -1)
+            if ((taskInfo != null && taskInfo.ProjectName != projectName) || drop == projectName)
             {
                 return;
             }
@@ -1575,8 +1577,7 @@ namespace handler
             {
                 projectName = projectName.Substring(0, projectName.IndexOf("_"));
             }
-            drop += StringUtil.isEmpty(drop) ? projectName : "|" + projectName;
-            IniReadWriter.WriteIniKeys("Command", "drop", drop, "./handler.ini");
+            IniReadWriter.WriteIniKeys("Command", "drop", projectName, "./handler.ini");
             string voteProjectNameDroped = IniReadWriter.ReadIniKeys("Command", "voteProjectNameDroped", pathShare + "/AutoVote.ini");
             int dropVote=0;
             try
